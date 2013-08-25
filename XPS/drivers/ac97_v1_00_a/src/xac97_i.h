@@ -20,6 +20,5 @@
 /***************************** Include Files *********************************/
 
 
-extern XAC97_Config XAC97_ConfigTable[];
 
 #endif  /* end of protection macro */

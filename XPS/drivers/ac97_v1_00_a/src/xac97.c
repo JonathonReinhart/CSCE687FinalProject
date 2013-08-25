@@ -30,8 +30,8 @@ Xuint16			opb_read_recordfifo(void);
 #include "xac97_l.h"
 #include "xac97.h"
 #include "xparameters.h"
-#include "xac97_g.c"
-#include "xac97_intr.c"
+//#include "xac97_g.c"
+//#include "xac97_intr.c"
 
 /***************************************************************************************
 *  Function:	XAC97_Initialize
@@ -40,6 +40,8 @@ Xuint16			opb_read_recordfifo(void);
 				XST_DEVICE_NOT_FOUND Device configuration data was not found for a device
 				with the supplied device ID
 ****************************************************************************************/
+// JRR - I gutted the config stuff - it wasn't fully utilized.
+/*
 XStatus XAC97_Initialize(XAC97* InstancePtr, Xuint16 DeviceID)
 {
 	XAC97_Config *ConfigPtr;					// for structure of XAC97_Config
@@ -57,12 +59,14 @@ XStatus XAC97_Initialize(XAC97* InstancePtr, Xuint16 DeviceID)
 	InstancePtr->IsReady = XCOMPONENT_IS_READY;		//XCOMPONENT_IS_READY defined in xstatus.h
 	return(XST_SUCCESS);
 }
+*/
 
 /***************************************************************************************
 *  Function:	XAC97_LookupConfig
 *  Description:	Looks up the device configuration based on the unique device ID.  
 *  Return:		XAC97 configuration structure pointer if Device ID is found
 ****************************************************************************************/	
+/*
 XAC97_Config *XAC97_LookupConfig(Xuint16 DeviceId)
 {
 	XAC97_Config *CfgPtr = XNULL;
@@ -80,6 +84,7 @@ XAC97_Config *XAC97_LookupConfig(Xuint16 DeviceId)
 
 	return CfgPtr;
 }
+*/
 
 /***************************************************************************************
 *  Function:	XAC97_SelfTest

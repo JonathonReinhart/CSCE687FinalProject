@@ -15,8 +15,6 @@ INCLUDEFILES=xac97_l.h xac97_i.h xac97.h
 OUTS = *.o 
 
 
-libs:	L$(LEVEL)_LIBS
-
 libs:
 	echo "Compiling ac97"
 	$(COMPILER) $(COMPILER_FLAGS) $(EXTRA_COMPILER_FLAGS) $(INCLUDES) $(LIBSOURCES)
