@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item value="bootloop" key="AudioTest2_hw_platform-microblaze_0-initElf"/>
+	<item value="AudioTest2_hw_platform\system.bit" key="AudioTest2_hw_platform-bitFile"/>
+	<item value="AudioTest2_hw_platform\system_bd.bmm" key="AudioTest2_hw_platform-bmmFile"/>
+</section>
