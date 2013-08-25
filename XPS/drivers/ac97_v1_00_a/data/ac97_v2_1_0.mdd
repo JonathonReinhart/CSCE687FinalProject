@@ -1,0 +1,19 @@
+OPTION psf_version = 2.1;
+
+BEGIN driver ac97
+
+  OPTION supported_peripherals = (opb_ac97_controller);
+
+  PARAM name = level, desc = "Driver Level", type = int, default = 0, range = (0, 1);
+
+  BEGIN BLOCK, dep = (level = 0)
+    OPTION depends = (common_v1_00_a);
+    OPTION copyfiles = (xac97_l.h xac97.h xac97_i.h xac97_g.c xac97.c Makefile);
+  END BLOCK
+
+  BEGIN BLOCK, dep = (level = 1)
+    OPTION depends = (common_v1_00_a);
+    OPTION copyfiles = all;
+  END BLOCK
+
+END driver
