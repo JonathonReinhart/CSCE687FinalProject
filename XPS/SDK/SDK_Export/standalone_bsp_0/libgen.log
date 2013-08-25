@@ -3,8 +3,8 @@ Release 13.2 - libgen Xilinx EDK 13.2 Build EDK_O.61xd
 Copyright (c) 1995-2011 Xilinx, Inc.  All rights reserved.
 
 Command Line: libgen -hw ../AudioTest2_hw_platform/system.xml -lp
-C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/AudioTest2 -pe
-microblaze_0 -log libgen.log system.mss 
+C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/CSCE687FinalProject_2/trun
+k/XPS -pe microblaze_0 -log libgen.log system.mss 
 
 WARNING:EDK - INFO:Security:56 - Part 'xc5vfx70t' is not a WebPack part.
    WARNING:Security:42 - Your software subscription period has lapsed. Your

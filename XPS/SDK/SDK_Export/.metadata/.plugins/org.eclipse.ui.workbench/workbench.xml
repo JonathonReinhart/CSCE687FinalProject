@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<workbench progressCount="24" version="2.0">
+<workbench progressCount="19" version="2.0">
 <workbenchAdvisor/>
-<window height="768" maximized="true" width="1024" x="-1262" y="41">
+<window height="768" maximized="true" width="1024" x="185" y="-8">
 <fastViewData fastViewLocation="1024"/>
 <intro standby="true"/>
 <perspectiveBar>
@@ -17,12 +17,12 @@
 <coolItem id="org.eclipse.cdt.ui.buildConfigActionSet" itemType="typeToolBarContribution" x="89" y="22"/>
 <coolItem id="org.eclipse.debug.ui.launchActionSet" itemType="typeToolBarContribution" x="129" y="22"/>
 <coolItem id="org.eclipse.search.searchActionSet" itemType="typeToolBarContribution" x="76" y="22"/>
-<coolItem id="org.eclipse.ui.edit.text.actionSet.presentation" itemType="typeToolBarContribution" x="84" y="22"/>
+<coolItem id="org.eclipse.ui.edit.text.actionSet.presentation" itemType="typeToolBarContribution" x="61" y="22"/>
 <coolItem id="group.nav" itemType="typeGroupMarker"/>
 <coolItem id="org.eclipse.ui.workbench.navigate" itemType="typeToolBarContribution" x="190" y="22"/>
 <coolItem id="group.editor" itemType="typeGroupMarker"/>
 <coolItem id="org.eclipse.cdt.make.editor" itemType="typeToolBarContribution" x="-1" y="-1"/>
-<coolItem id="org.eclipse.cdt.ui.editor.CEditor" itemType="typeToolBarContribution" x="-1" y="-1"/>
+<coolItem id="org.eclipse.cdt.ui.editor.CEditor" itemType="typePlaceholder" x="-1" y="-1"/>
 <coolItem id="group.help" itemType="typeGroupMarker"/>
 <coolItem id="org.eclipse.ui.workbench.help" itemType="typeToolBarContribution" x="-1" y="-1"/>
 </coolbarLayout>
@@ -31,31 +31,10 @@
 <editorArea activeWorkbook="DefaultEditorWorkbook">
 <info part="DefaultEditorWorkbook">
 <folder appearance="1" expanded="2">
-<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
-<part id="0"/>
-<part id="1"/>
-<part id="2"/>
-<part id="3"/>
-</presentation>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory"/>
 </folder>
 </info>
 </editorArea>
-<editor activePart="true" focus="true" id="org.eclipse.cdt.ui.editor.CEditor" name="helloworld.c" partName="helloworld.c" path="C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/CSCE687FinalProject/trunk/XPS/SDK/SDK_Export/test_0/src/helloworld.c" title="helloworld.c" tooltip="test_0/src/helloworld.c" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/test_0/src/helloworld.c"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1774" selectionTopPixel="0"/>
-</editor>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="xac97.h" partName="xac97.h" path="C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/AudioTest2/SDK/SDK_Export/standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97.h" title="xac97.h" tooltip="standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97.h" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97.h"/>
-<editorState selectionHorizontalPixel="0" selectionLength="12" selectionOffset="1899" selectionTopPixel="904"/>
-</editor>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="xac97_l.h" partName="xac97_l.h" path="C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/AudioTest2/SDK/SDK_Export/standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97_l.h" title="xac97_l.h" tooltip="standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97_l.h" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97_l.h"/>
-<editorState selectionHorizontalPixel="0" selectionLength="55" selectionOffset="2083" selectionTopPixel="0"/>
-</editor>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="xac97.c" partName="xac97.c" path="C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/AudioTest2/SDK/SDK_Export/standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97.c" title="xac97.c" tooltip="standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97.c" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97.c"/>
-<editorState selectionHorizontalPixel="0" selectionLength="24" selectionOffset="1198" selectionTopPixel="51"/>
-</editor>
 </editors>
 <views>
 <view id="org.eclipse.debug.ui.ModuleView" partName="Modules">
@@ -159,7 +138,7 @@
 <viewState/>
 </view>
 </views>
-<perspectives activePart="org.eclipse.ui.internal.introview" activePerspective="org.eclipse.cdt.ui.CPerspective">
+<perspectives activePart="org.eclipse.ui.navigator.ProjectExplorer" activePerspective="org.eclipse.cdt.ui.CPerspective">
 <perspective editorAreaTrimState="2" editorAreaVisible="1" fixed="0" version="0.016">
 <descriptor class="org.eclipse.cdt.internal.ui.CPerspectiveFactory" id="org.eclipse.cdt.ui.CPerspective" label="C/C++"/>
 <alwaysOnActionSet id="org.eclipse.ui.cheatsheets.actionSet"/>
@@ -385,165 +364,7 @@
 </perspective>
 </perspectives>
 <workingSets/>
-<navigationHistory>
-<editors>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/test_0/src/helloworld.c"/>
-<editor factoryID="org.eclipse.cdt.ui.ExternalEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="C:\Users\Jonathon\Classwork\CSCE687\_FinalProject\XPS\AudioTest2\SDK\SDK_Export\standalone_bsp_0\microblaze_0\libsrc\uartlite_v2_00_a\src\xuartlite_l.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/standalone_bsp_0/microblaze_0/include/xbasic_types.h"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97.c"/>
-<editor factoryID="org.eclipse.cdt.ui.ExternalEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="C:\Users\Jonathon\Classwork\CSCE687\_FinalProject\XPS\AudioTest2\SDK\SDK_Export\standalone_bsp_0\microblaze_0\libsrc\uartlite_v2_00_a\src\xuartlite_l.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97.h"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97_l.h"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/standalone_bsp_0/microblaze_0/libsrc/ac97_v1_00_a/src/xac97.c"/>
-</editors>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1362" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1189" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1234" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1281" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1302" y="0"/>
-</item>
-<item historyLabel="xuartlite_l.c" index="1">
-<position info="not_deleted" x="0" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1210" y="0"/>
-</item>
-<item historyLabel="xbasic_types.h" index="2">
-<position info="not_deleted" x="3641" y="7"/>
-</item>
-<item historyLabel="xac97.c" index="3">
-<position info="not_deleted" x="7351" y="0"/>
-</item>
-<item historyLabel="xbasic_types.h" index="2">
-<position info="not_deleted" x="3641" y="7"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1210" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="996" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1751" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1227" y="0"/>
-</item>
-<item historyLabel="xuartlite_l.c" index="4">
-<position info="not_deleted" x="4172" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1709" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="984" y="0"/>
-</item>
-<item historyLabel="xac97.h" index="5">
-<position info="not_deleted" x="567" y="7"/>
-</item>
-<item historyLabel="xac97_l.h" index="6">
-<position info="not_deleted" x="234" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1768" y="0"/>
-</item>
-<item historyLabel="xac97.c" index="7">
-<position info="not_deleted" x="6003" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1708" y="0"/>
-</item>
-<item historyLabel="xac97.h" index="5">
-<position info="not_deleted" x="1899" y="12"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1442" y="0"/>
-</item>
-<item historyLabel="xac97_l.h" index="6">
-<position info="not_deleted" x="1740" y="0"/>
-</item>
-<item historyLabel="xac97.c" index="7">
-<position info="not_deleted" x="5671" y="35"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1442" y="0"/>
-</item>
-<item historyLabel="xac97_l.h" index="6">
-<position info="not_deleted" x="2208" y="23"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1356" y="0"/>
-</item>
-<item historyLabel="xac97_l.h" index="6">
-<position info="not_deleted" x="2042" y="20"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1356" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1708" y="0"/>
-</item>
-<item historyLabel="xac97_l.h" index="6">
-<position info="not_deleted" x="2042" y="20"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1706" y="0"/>
-</item>
-<item historyLabel="xac97_l.h" index="6">
-<position info="not_deleted" x="2091" y="24"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1604" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1180" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1609" y="97"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1836" y="0"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1250" y="0"/>
-</item>
-<item historyLabel="xac97.h" index="5">
-<position info="not_deleted" x="1899" y="12"/>
-</item>
-<item historyLabel="xac97_l.h" index="6">
-<position info="not_deleted" x="2083" y="55"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position/>
-</item>
-<item historyLabel="xac97.h" index="5">
-<position info="not_deleted" x="1899" y="12"/>
-</item>
-<item historyLabel="xac97_l.h" index="6">
-<position info="not_deleted" x="2083" y="55"/>
-</item>
-<item historyLabel="xac97.h" index="5">
-<position info="not_deleted" x="1899" y="12"/>
-</item>
-<item historyLabel="xac97.c" index="7">
-<position info="not_deleted" x="1198" y="24"/>
-</item>
-<item historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="914" y="0"/>
-</item>
-<item active="true" historyLabel="helloworld.c" index="0">
-<position info="not_deleted" x="1251" y="0"/>
-</item>
-</navigationHistory>
+<navigationHistory/>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/" type="8"/>
 </page>
 <workbenchWindowAdvisor/>
