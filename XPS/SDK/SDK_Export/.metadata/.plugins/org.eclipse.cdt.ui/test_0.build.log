@@ -1,6 +1,0 @@
-
-**** Clean-only build of configuration Debug for project test_0 ****
-
-make clean 
-rm -rf  ./src/helloworld.o  ./src/helloworld.d  test_0.elf.size  test_0.elf.elfcheck  test_0.elf
-' '
