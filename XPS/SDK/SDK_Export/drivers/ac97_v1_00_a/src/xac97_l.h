@@ -40,18 +40,31 @@
 
 #define XAC97_CONTROL_REGADDR_READ	0x00000080
 
-#define XAC97_STEREO_VOLUME_REG		0x02	//Master volume
-#define XAC97_AUX_VOLUME_REG		0x04	//True Line Level Out Volume
-#define XAC97_MONO_VOLUME_REG		0x06	//Master Volume Mono
-#define XAC97_BEEP_VOLUME_REG		0x0A	//PC_BEEP volume
-#define XAC97_MIC_VOLUME_REG		0x0E	//Mic volume
-#define XAC97_PCM_OUT_VOLUME_REG	0x18	//PCM Out volume
-#define XAC97_RECORD_SELECT_REG	    0x1A	//Record select
-#define XAC97_RECORD_GAIN_REG		0x1C	//Record gain
-#define XAC97_GENERAL_PURPOSE_REG	0x20	//General Purpose
-#define XAC97_STATUS_CONTROL_REG	0x2A	//Extended Audio Status/Control
-#define XAC97_PCM_DAC_SAMPLE_RATE_REG	0x2C	//PCM front DAC Rate
-#define XAC97_PCM_ADC_SAMPLE_RATE_REG	0x32	//PCM ADC Rate
+#define XAC97_RESET_REG                 0x00
+#define XAC97_STEREO_VOLUME_REG         0x02	// Master volume
+#define XAC97_AUX_VOLUME_REG            0x04	// True Line Level Out Volume
+#define XAC97_MONO_VOLUME_REG           0x06	// Master Volume Mono
+#define XAC97_MASTER_TONE_REG           0x08    // Master Tone
+#define XAC97_BEEP_VOLUME_REG           0x0A	// PC_BEEP volume
+#define XAC97_PHONE_VOLUME_REG          0x0C	// Phone volume
+#define XAC97_MIC_VOLUME_REG            0x0E	// Mic volume
+#define XAC97_LINE_IN_VOLUME_REG        0x10	// Line In volume
+#define XAC97_CD_VOLUME_REG             0x12	// CD volume
+#define XAC97_VIDEO_VOLUME_REG          0x14	// Video volume
+#define XAC97_AUX_IN_VOLUME_REG         0x16	// AUX in volume
+#define XAC97_PCM_OUT_VOLUME_REG        0x18	// PCM Out volume
+#define XAC97_RECORD_SELECT_REG         0x1A	// Record select
+#define XAC97_RECORD_GAIN_REG           0x1C	// Record gain
+#define XAC97_RECORD_GAIN_MIC_REG       0x1E	// Record gain mic
+#define XAC97_GENERAL_PURPOSE_REG       0x20	// General Purpose
+#define XAC97_STATUS_CONTROL_REG        0x2A	// Extended Audio Status/Control
+#define XAC97_PCM_DAC_SAMPLE_RATE_REG   0x2C	// PCM front DAC Rate
+#define XAC97_PCM_ADC_SAMPLE_RATE_REG   0x32	// PCM ADC Rate
+
+#define XAC97_VOL_MUTE          0x8000
+#define XAC97_VOL_MAX           0x0000      // 0xx00000_xxx00000    +12   dB gain
+#define XAC97_VOL_0dB           0x0808      // 0xx01000_xxx01000      0   dB gain
+#define XAC97_VOL_MIN           0x1F1F      // 0xx11111_xxx11111    -34.5 dB gain
 
 
 /***************** Macros (Inline Functions) Definitions *********************/
