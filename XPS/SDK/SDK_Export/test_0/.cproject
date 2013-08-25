@@ -75,7 +75,7 @@
 							</tool>
 							<tool id="xilinx.gnu.mb.size.debug.655130814" name="MicroBlaze Print Size" superClass="xilinx.gnu.mb.size.debug"/>
 							<tool id="xilinx.elfcheck.mb.debug.142959506" name="Xilinx ELF Check" superClass="xilinx.elfcheck.mb.debug">
-								<option id="xilinx.elfcheck.option.hwspec.1876055051" superClass="xilinx.elfcheck.option.hwspec" value="-hw ../../AudioTest2_hw_platform/system.xml" valueType="string"/>
+								<option id="xilinx.elfcheck.option.hwspec.1876055051" superClass="xilinx.elfcheck.option.hwspec" value="-hw ../../XPS_hw_platform/system.xml" valueType="string"/>
 								<option id="xilinx.elfcheck.option.procname.1574772982" superClass="xilinx.elfcheck.option.procname" value="-pe microblaze_0" valueType="string"/>
 							</tool>
 						</toolChain>
@@ -773,7 +773,7 @@
 							</tool>
 							<tool id="xilinx.gnu.mb.size.release.1536162243" name="MicroBlaze Print Size" superClass="xilinx.gnu.mb.size.release"/>
 							<tool id="xilinx.elfcheck.mb.release.1364650810" name="Xilinx ELF Check" superClass="xilinx.elfcheck.mb.release">
-								<option id="xilinx.elfcheck.option.hwspec.1702858370" superClass="xilinx.elfcheck.option.hwspec" value="-hw ../../AudioTest2_hw_platform/system.xml" valueType="string"/>
+								<option id="xilinx.elfcheck.option.hwspec.1702858370" superClass="xilinx.elfcheck.option.hwspec" value="-hw ../../XPS_hw_platform/system.xml" valueType="string"/>
 								<option id="xilinx.elfcheck.option.procname.244348183" superClass="xilinx.elfcheck.option.procname" value="-pe microblaze_0" valueType="string"/>
 							</tool>
 						</toolChain>

@@ -50,7 +50,7 @@ test_0.elf.size: test_0.elf
 
 test_0.elf.elfcheck: test_0.elf
 	@echo Invoking: Xilinx ELF Check
-	elfcheck test_0.elf -hw ../../AudioTest2_hw_platform/system.xml -pe microblaze_0  |tee "test_0.elf.elfcheck"
+	elfcheck test_0.elf -hw ../../XPS_hw_platform/system.xml -pe microblaze_0  |tee "test_0.elf.elfcheck"
 	@echo Finished building: $@
 	@echo ' '
 

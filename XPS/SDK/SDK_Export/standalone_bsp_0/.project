@@ -3,7 +3,7 @@
 	<name>standalone_bsp_0</name>
 	<comment></comment>
 	<projects>
-		<project>AudioTest2_hw_platform</project>
+		<project>XPS_hw_platform</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
