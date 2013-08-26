@@ -26,6 +26,7 @@
 #include "xac97_l.h"
 #include "mb_interface.h"
 
+#define AC97_FSL_ID		0
 
 #define ABS(x)	((x<0) ? -(x) : x)
 
@@ -49,6 +50,9 @@ int main()
     // Set the Line In gain to 0dB.
     WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_LINE_IN_VOLUME_REG, XAC97_VOL_0dB);
 
+    // Set the Master volume to 0dB.
+    WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, XAC97_VOL_0dB);
+
 
 
     print("Calling playback_enable\r\n");
@@ -57,9 +61,69 @@ int main()
     print("Calling record_enable\r\n");
     record_enable();
 
+    print("CPU effectively stopped.");
+    while (1) { }
+
+
     while (1) {
-    	microblaze_bread_datafsl(soundbyte, 0);
-    	microblaze_bwrite_datafsl(soundbyte, 0);
+#define BUFSIZE	32
+
+    	int i;
+    	Xint16 buf[BUFSIZE];
+
+    	for (i=0; i<BUFSIZE; ++i) {
+    		Xint16 x;
+    		getfsl(x, AC97_FSL_ID);
+    		buf[i] = x;
+    	}
+
+    	for (i=0; i<BUFSIZE; ++i) {
+    		Xint16 x = buf[i];
+    		putfsl(x, AC97_FSL_ID);
+    	}
+
+    	/*
+    	Xint16	s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15;
+
+    	getfsl(s0, AC97_FSL_ID);
+    	getfsl(s1, AC97_FSL_ID);
+    	getfsl(s2, AC97_FSL_ID);
+    	getfsl(s3, AC97_FSL_ID);
+    	getfsl(s4, AC97_FSL_ID);
+    	getfsl(s5, AC97_FSL_ID);
+    	getfsl(s6, AC97_FSL_ID);
+    	getfsl(s7, AC97_FSL_ID);
+    	getfsl(s8, AC97_FSL_ID);
+    	getfsl(s9, AC97_FSL_ID);
+    	getfsl(s10, AC97_FSL_ID);
+    	getfsl(s11, AC97_FSL_ID);
+    	getfsl(s12, AC97_FSL_ID);
+    	getfsl(s13, AC97_FSL_ID);
+    	getfsl(s14, AC97_FSL_ID);
+    	getfsl(s15, AC97_FSL_ID);
+
+    	putfsl(s0, AC97_FSL_ID);
+    	putfsl(s1, AC97_FSL_ID);
+    	putfsl(s2, AC97_FSL_ID);
+    	putfsl(s3, AC97_FSL_ID);
+    	putfsl(s4, AC97_FSL_ID);
+    	putfsl(s5, AC97_FSL_ID);
+    	putfsl(s6, AC97_FSL_ID);
+    	putfsl(s7, AC97_FSL_ID);
+    	putfsl(s8, AC97_FSL_ID);
+    	putfsl(s9, AC97_FSL_ID);
+    	putfsl(s10, AC97_FSL_ID);
+    	putfsl(s11, AC97_FSL_ID);
+    	putfsl(s12, AC97_FSL_ID);
+    	putfsl(s13, AC97_FSL_ID);
+    	putfsl(s14, AC97_FSL_ID);
+    	putfsl(s15, AC97_FSL_ID);
+		*/
+
+
+
+    	//microblaze_bread_datafsl(soundbyte, 0);
+    	//microblaze_bwrite_datafsl(soundbyte, 0);
 
     	//rollavg = (((rollavg<<5) - rollavg) + soundbyte) >> 5;	// 32
 
