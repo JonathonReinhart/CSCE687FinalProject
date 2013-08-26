@@ -1,0 +1,13 @@
+-batch 
+-create audiofx 
+-ver 1.00.a 
+-dir C:\Users\Jonathon\Classwork\CSCE687\_FinalProject\XPS\CSCE687FinalProject_3\XPS\ 
+-lang vhdl 
+-bus fsl ms 
+-xps 
+-driver 
+-totalin 1
+-totalout 1
+-argin 1
+-argout 1
+-desc "Audio FX Core"

@@ -1,0 +1,56 @@
+
+----------------------------------------------------------------------------
+--                            File Generation                             --
+----------------------------------------------------------------------------
+No ProjNavigator support files will be generated at this time ...
+No XST project files will be generated at this time ...
+Start Creating drver source 
+
+----------------------------------------------------------------------------
+--                              Final Report                              --
+----------------------------------------------------------------------------
+Thank you for using Create and Import Peripheral Wizard!
+
+Peripheral summary
+
+  top name       : audiofx
+  version        : 1.00.a
+  type           : FSL master slave
+  features       : 
+
+File Summary
+
+  - HDL source -
+C:\Users\Jonathon\Classwork\CSCE687\_FinalProject\XPS\CSCE687FinalProject_3\XPS\
+pcores\audiofx_v1_00_a\hdl\vhdl
+  top level      : audiofx.vhd
+
+  - XPS interface -
+C:\Users\Jonathon\Classwork\CSCE687\_FinalProject\XPS\CSCE687FinalProject_3\XPS\
+pcores\audiofx_v1_00_a\data
+  mpd            : audiofx_v2_1_0.mpd
+  pao            : audiofx_v2_1_0.pao
+
+  - Misc file -
+C:\Users\Jonathon\Classwork\CSCE687\_FinalProject\XPS\CSCE687FinalProject_3\XPS\
+pcores\audiofx_v1_00_a\devl
+  help           : README.txt
+  option         : ipwiz.opt
+  log            : ipwiz.log
+
+  - Driver source -
+C:\Users\Jonathon\Classwork\CSCE687\_FinalProject\XPS\CSCE687FinalProject_3\XPS\
+drivers\audiofx_v1_00_a\src
+  makefile       : Makefile
+  header         : audiofx.h
+  source         : audiofx.c
+
+  - Driver interface -
+  - user needs to add these to repositories path in SDK (Xilinx
+Tools-->Repositories)
+C:\Users\Jonathon\Classwork\CSCE687\_FinalProject\XPS\CSCE687FinalProject_3\XPS\
+drivers\audiofx_v1_00_a\data
+  mdd            : audiofx_v2_1_0.mdd
+  tcl            : audiofx_v2_1_0.tcl
+
+

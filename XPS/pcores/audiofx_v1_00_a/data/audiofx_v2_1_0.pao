@@ -1,0 +1,7 @@
+##############################################################################
+## Filename:          C:\Users\Jonathon\Classwork\CSCE687\_FinalProject\XPS\CSCE687FinalProject_3\XPS\pcores/audiofx_v1_00_a/data/audiofx_v2_1_0.pao
+## Description:       Peripheral Analysis Order
+## Date:              Sun Aug 25 18:49:40 2013 (by Create and Import Peripheral Wizard)
+##############################################################################
+
+lib audiofx_v1_00_a audiofx vhdl
