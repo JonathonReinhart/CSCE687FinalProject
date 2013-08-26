@@ -53,10 +53,8 @@ BEGIN microblaze
  BUS_INTERFACE DPLB = mb_plb
  BUS_INTERFACE IPLB = mb_plb
  BUS_INTERFACE DEBUG = microblaze_0_mdm_bus
- BUS_INTERFACE SFSL0 = fsl_ac97_sound_in
  BUS_INTERFACE DLMB = dlmb
  BUS_INTERFACE ILMB = ilmb
- BUS_INTERFACE MFSL0 = fsl_ac97_sound_out
  PORT MB_RESET = mb_reset
 END
 
@@ -324,5 +322,12 @@ BEGIN fsl_v20
  PARAMETER C_EXT_RESET_HIGH = 0
  PORT SYS_Rst = sys_rst_s
  PORT FSL_Clk = clk_125_0000MHzPLL0
+END
+
+BEGIN audiofx
+ PARAMETER INSTANCE = audiofx_0
+ PARAMETER HW_VER = 1.00.a
+ BUS_INTERFACE SFSL = fsl_ac97_sound_in
+ BUS_INTERFACE MFSL = fsl_ac97_sound_out
 END
 
