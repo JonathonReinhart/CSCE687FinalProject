@@ -21,22 +21,93 @@
  */
 
 #include <stdio.h>
-#include "xparameters.h"
-#include "xac97.h"
-#include "xac97_l.h"
-#include "mb_interface.h"
+#include <xparameters.h>
+#include <mb_interface.h>
 
-#define AC97_FSL_ID		0
+#include <xintc.h>
+#include <xtmrctr.h>
 
-#define ABS(x)	((x<0) ? -(x) : x)
+#include <xac97.h>
+#include <xac97_l.h>
+
+unsigned int count = 1;
+int one_second_flag = 0;
 
 
-int main()
+void timer_int_handler(void* _unused) {
+	u32 csr;
+
+	/* Read timer 0 CSR to see if it raised the interrupt */
+	csr = XTmrCtr_GetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0);
+
+	/* If the interrupt occurred, then increment a counter and set one_second_flag */
+	if (csr & XTC_CSR_INT_OCCURED_MASK) {
+		count++;
+		one_second_flag = 1;
+	}
+
+	/* Clear the timer interrupt */
+	XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0, csr);
+
+	xil_printf("tick %d\r\n", count);
+}
+
+
+void init_interrupts(void) {
+	print("Calling init_interrupts()\r\n");
+
+
+	////////////////////////////////////
+	// Initialize interrupt controller
+
+	// Register the Timer interrupt handler in the vector table
+	XIntc_RegisterHandler(
+			XPAR_XPS_INTC_0_BASEADDR,                       // BaseAddress
+			XPAR_XPS_INTC_0_XPS_TIMER_0_INTERRUPT_INTR,     // InterruptId
+			timer_int_handler,                              // Handler
+			0);                                             // CallBackRef - parameter passed to Handler
+
+	// Start the interrupt controller
+	XIntc_MasterEnable(XPAR_XPS_INTC_0_BASEADDR);
+
+	// Enable timer interrupts in the interrupt controller
+	XIntc_EnableIntr(XPAR_XPS_INTC_0_BASEADDR, XPAR_XPS_TIMER_0_INTERRUPT_MASK);
+
+
+	////////////////////////////////////
+	// Initialize timer
+
+	// Set the number of cycles the timer counts before interrupting
+	XTmrCtr_SetLoadReg(XPAR_XPS_TIMER_0_BASEADDR, 0, 1 * XPAR_XPS_TIMER_0_CLOCK_FREQ_HZ);
+
+	// Reset the timer, and clear the interrupt occurred flag
+	XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0,
+			XTC_CSR_INT_OCCURED_MASK |        // Clear T0INT
+			XTC_CSR_LOAD_MASK                 // LOAD0 1 = Loads timer with value in TLR0
+			);
+
+	// Start the timers
+	XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0,
+			XTC_CSR_ENABLE_TMR_MASK |         // ENT0 Enable Timer0
+			XTC_CSR_ENABLE_INT_MASK |         // ENIT Enable Interrupt for Timer0
+			XTC_CSR_AUTO_RELOAD_MASK |        // ARHT0 1 = Auto reload Timer0 and continue running
+			XTC_CSR_DOWN_COUNT_MASK           // UDT0  1 = Timer counts down
+			);
+
+
+	////////////////////////////////////
+
+	// Ready to go - enable interrupts!
+	microblaze_enable_interrupts();
+}
+
+
+int main(void)
 {
-	//int i = 0;
-	Xint16 soundbyte;
+	print("Microblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
 
-	//Xint16 rollavg = 0;
+	init_interrupts();
+	while (1) { }
 
     print("Calling init_sound\r\n");
     init_sound(48000);
@@ -62,74 +133,11 @@ int main()
     record_enable();
 
     print("CPU effectively stopped.");
-    while (1) { }
-
-
     while (1) {
-#define BUFSIZE	32
 
-    	int i;
-    	Xint16 buf[BUFSIZE];
-
-    	for (i=0; i<BUFSIZE; ++i) {
-    		Xint16 x;
-    		getfsl(x, AC97_FSL_ID);
-    		buf[i] = x;
-    	}
-
-    	for (i=0; i<BUFSIZE; ++i) {
-    		Xint16 x = buf[i];
-    		putfsl(x, AC97_FSL_ID);
-    	}
-
-    	/*
-    	Xint16	s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15;
-
-    	getfsl(s0, AC97_FSL_ID);
-    	getfsl(s1, AC97_FSL_ID);
-    	getfsl(s2, AC97_FSL_ID);
-    	getfsl(s3, AC97_FSL_ID);
-    	getfsl(s4, AC97_FSL_ID);
-    	getfsl(s5, AC97_FSL_ID);
-    	getfsl(s6, AC97_FSL_ID);
-    	getfsl(s7, AC97_FSL_ID);
-    	getfsl(s8, AC97_FSL_ID);
-    	getfsl(s9, AC97_FSL_ID);
-    	getfsl(s10, AC97_FSL_ID);
-    	getfsl(s11, AC97_FSL_ID);
-    	getfsl(s12, AC97_FSL_ID);
-    	getfsl(s13, AC97_FSL_ID);
-    	getfsl(s14, AC97_FSL_ID);
-    	getfsl(s15, AC97_FSL_ID);
-
-    	putfsl(s0, AC97_FSL_ID);
-    	putfsl(s1, AC97_FSL_ID);
-    	putfsl(s2, AC97_FSL_ID);
-    	putfsl(s3, AC97_FSL_ID);
-    	putfsl(s4, AC97_FSL_ID);
-    	putfsl(s5, AC97_FSL_ID);
-    	putfsl(s6, AC97_FSL_ID);
-    	putfsl(s7, AC97_FSL_ID);
-    	putfsl(s8, AC97_FSL_ID);
-    	putfsl(s9, AC97_FSL_ID);
-    	putfsl(s10, AC97_FSL_ID);
-    	putfsl(s11, AC97_FSL_ID);
-    	putfsl(s12, AC97_FSL_ID);
-    	putfsl(s13, AC97_FSL_ID);
-    	putfsl(s14, AC97_FSL_ID);
-    	putfsl(s15, AC97_FSL_ID);
-		*/
-
-
-
-    	//microblaze_bread_datafsl(soundbyte, 0);
-    	//microblaze_bwrite_datafsl(soundbyte, 0);
-
-    	//rollavg = (((rollavg<<5) - rollavg) + soundbyte) >> 5;	// 32
-
-    	//if (++i & 0x2000)
-    	//	xil_printf("rollavg = %d\r\n", rollavg);
     }
+
+
 
     return 0;
 }
