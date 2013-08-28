@@ -212,9 +212,9 @@ architecture IMPL of audiofx is
   ------------------------------------------
   constant ZERO_ADDR_PAD                  : std_logic_vector(0 to 31) := (others => '0');
   constant USER_SLV_BASEADDR              : std_logic_vector     := C_BASEADDR or X"00000000";
-  constant USER_SLV_HIGHADDR              : std_logic_vector     := C_BASEADDR or X"000000FF";
-  constant RST_BASEADDR                   : std_logic_vector     := C_BASEADDR or X"00000100";
-  constant RST_HIGHADDR                   : std_logic_vector     := C_BASEADDR or X"000001FF";
+  constant USER_SLV_HIGHADDR              : std_logic_vector     := C_BASEADDR or X"00000FFF";
+  constant RST_BASEADDR                   : std_logic_vector     := C_BASEADDR or X"00001000";
+  constant RST_HIGHADDR                   : std_logic_vector     := C_BASEADDR or X"000010FF";
 
   constant IPIF_ARD_ADDR_RANGE_ARRAY      : SLV64_ARRAY_TYPE     := 
     (
@@ -227,7 +227,7 @@ architecture IMPL of audiofx is
   ------------------------------------------
   -- Array of desired number of chip enables for each address range
   ------------------------------------------
-  constant USER_SLV_NUM_REG               : integer              := 16;
+  constant USER_SLV_NUM_REG               : integer              := 128;
   constant USER_NUM_REG                   : integer              := USER_SLV_NUM_REG;
   constant RST_NUM_CE                     : integer              := 1;
 
