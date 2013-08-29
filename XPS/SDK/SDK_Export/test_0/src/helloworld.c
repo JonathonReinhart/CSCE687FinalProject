@@ -30,6 +30,7 @@
 #include <audiofx.h>
 #include <xgpio.h>
 
+#define FUNC_ENTER()	xil_printf(" %s()\r\n", __FUNCTION__)
 
 static XGpio m_gpioDIP8;
 static XGpio m_gpioLEDs8;
@@ -55,7 +56,7 @@ void timer_int_handler(void* _unused) {
 
 
 void init_interrupts(void) {
-	print("Calling init_interrupts()\r\n");
+	FUNC_ENTER();
 
 
 	////////////////////////////////////
@@ -104,6 +105,8 @@ void init_interrupts(void) {
 
 
 void do_ac97_init(void) {
+	FUNC_ENTER();
+
 	print("Calling init_sound\r\n");
 	init_sound(48000);
 
@@ -129,6 +132,7 @@ void do_ac97_init(void) {
 }
 
 void do_gpio_init(void) {
+	FUNC_ENTER();
 	// direction: Bits set to 0 are output and bits set to 1 are input.
 
     XGpio_Initialize(&m_gpioDIP8, XPAR_DIP_SWITCHES_8BIT_DEVICE_ID);
@@ -145,8 +149,9 @@ inline u8 read_DIP8(void) {
 
 int main(void)
 {
-	u32 val=0, prev=0;
+	u32 fsl_count=0, prev_fsl_count=0;
 	u8 cur_dip=0, new_dip=0;
+	u32 temp;
 
 	print("Microblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
 	init_interrupts();
@@ -154,14 +159,15 @@ int main(void)
 	do_gpio_init();
 
 
+	print("Entering main loop...\r\n");
     while (1) {
 
     	if (one_second_flag) {
     		one_second_flag = 0;
 
-    		val = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + 0x0C);
-    		//xil_printf("diff = %d\r\n", val-prev);
-    		prev = val;
+    		fsl_count = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_0Ch_OFFSET);
+    		//xil_printf("diff = %d\r\n", fsl_count - prev_fsl_count);
+    		prev_fsl_count = fsl_count;
     	}
 
     	// Check if DSP select switches changed
@@ -169,7 +175,12 @@ int main(void)
     	if (new_dip != cur_dip) {
     		cur_dip = new_dip;
 
-    		xil_printf("New DIP switch value: 0x%X\r\n", cur_dip);
+    		xil_printf("New DIP switch value: 0x%X\r\n", new_dip);
+    		XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET, new_dip);
+
+    		temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET);
+
+    		xil_printf("Enabled DSPs: 0x%X\r\n", temp);
     	}
     }
 

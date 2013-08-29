@@ -10,8 +10,8 @@
 /*                                                                 */
 /*******************************************************************/
 
-_STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x400;
-_HEAP_SIZE = DEFINED(_HEAP_SIZE) ? _HEAP_SIZE : 0x400;
+_STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x1000;
+_HEAP_SIZE = DEFINED(_HEAP_SIZE) ? _HEAP_SIZE : 0x1000;
 
 /* Define Memories in the system */
 
@@ -49,15 +49,15 @@ SECTIONS
    *(.text)
    *(.text.*)
    *(.gnu.linkonce.t.*)
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .init : {
    KEEP (*(.init))
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .fini : {
    KEEP (*(.fini))
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .ctors : {
    __CTOR_LIST__ = .;
@@ -68,7 +68,7 @@ SECTIONS
    KEEP (*(.ctors))
    __CTOR_END__ = .;
    ___CTORS_END___ = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .dtors : {
    __DTOR_LIST__ = .;
@@ -79,7 +79,7 @@ SECTIONS
    KEEP (*(.dtors))
    __DTOR_END__ = .;
    ___DTORS_END___ = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .rodata : {
    __rodata_start = .;
@@ -87,7 +87,7 @@ SECTIONS
    *(.rodata.*)
    *(.gnu.linkonce.r.*)
    __rodata_end = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .sdata2 : {
    . = ALIGN(8);
@@ -97,7 +97,7 @@ SECTIONS
    *(.gnu.linkonce.s2.*)
    . = ALIGN(8);
    __sdata2_end = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .sbss2 : {
    __sbss2_start = .;
@@ -105,7 +105,7 @@ SECTIONS
    *(.sbss2.*)
    *(.gnu.linkonce.sb2.*)
    __sbss2_end = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .data : {
    . = ALIGN(4);
@@ -114,31 +114,31 @@ SECTIONS
    *(.data.*)
    *(.gnu.linkonce.d.*)
    __data_end = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .got : {
    *(.got)
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .got1 : {
    *(.got1)
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .got2 : {
    *(.got2)
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .eh_frame : {
    *(.eh_frame)
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .jcr : {
    *(.jcr)
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .gcc_except_table : {
    *(.gcc_except_table)
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .sdata : {
    . = ALIGN(8);
@@ -147,7 +147,7 @@ SECTIONS
    *(.sdata.*)
    *(.gnu.linkonce.s.*)
    __sdata_end = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .sbss : {
    . = ALIGN(4);
@@ -157,7 +157,7 @@ SECTIONS
    *(.gnu.linkonce.sb.*)
    . = ALIGN(8);
    __sbss_end = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .tdata : {
    __tdata_start = .;
@@ -165,7 +165,7 @@ SECTIONS
    *(.tdata.*)
    *(.gnu.linkonce.td.*)
    __tdata_end = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .tbss : {
    __tbss_start = .;
@@ -173,7 +173,7 @@ SECTIONS
    *(.tbss.*)
    *(.gnu.linkonce.tb.*)
    __tbss_end = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .bss : {
    . = ALIGN(4);
@@ -184,7 +184,7 @@ SECTIONS
    *(COMMON)
    . = ALIGN(4);
    __bss_end = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 _SDA_BASE_ = __sdata_start + ((__sbss_end - __sdata_start) / 2 );
 
@@ -198,7 +198,7 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
    _heap_start = .;
    . += _HEAP_SIZE;
    _heap_end = .;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 .stack : {
    _stack_end = .;
@@ -206,7 +206,7 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
    . = ALIGN(8);
    _stack = .;
    __stack = _stack;
-} > ilmb_cntlr_dlmb_cntlr
+} > DDR2_SDRAM_MPMC_BASEADDR
 
 _end = .;
 }
