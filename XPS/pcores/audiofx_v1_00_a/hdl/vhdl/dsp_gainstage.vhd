@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 --library ieee_proposed;
 --use ieee_proposed.fixed_pkg.all;    -- ufixed, sfixed
 
-entity gainstage is
+entity dsp_gainstage is
     generic (
         XY_WIDTH            : natural := 16;
         A_WIDTH             : natural := 32;
@@ -17,10 +17,10 @@ entity gainstage is
         a           : in  std_logic_vector(A_WIDTH-1  downto 0);    -- gain
         y           : out std_logic_vector(XY_WIDTH-1 downto 0)     -- output 
     );
-end entity gainstage;    
+end entity dsp_gainstage;    
 
 
-architecture IMP of gainstage is
+architecture IMP of dsp_gainstage is
     
 begin
 

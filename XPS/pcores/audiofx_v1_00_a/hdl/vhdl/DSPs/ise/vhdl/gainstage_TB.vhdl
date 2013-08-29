@@ -10,7 +10,7 @@ architecture BEHAVIORAL of gainstage_TB is
 
 --------------
 --- Components
-    component gainstage is
+    component dsp_gainstage is
         port (
             samp_clk    : in  std_logic;
             x           : in  std_logic_vector(15 downto 0);    -- input
@@ -55,7 +55,7 @@ begin
             rst => open
             );
 
-    UUT : gainstage
+    UUT : dsp_gainstage
         port map (
             samp_clk => clk,
             x => x,
