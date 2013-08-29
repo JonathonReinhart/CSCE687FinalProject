@@ -23,33 +23,34 @@
 #include <stdio.h>
 #include <xparameters.h>
 #include <mb_interface.h>
-
 #include <xintc.h>
 #include <xtmrctr.h>
-
 #include <xac97.h>
 #include <xac97_l.h>
+#include <audiofx.h>
+#include <xgpio.h>
 
-unsigned int count = 1;
-int one_second_flag = 0;
+
+static XGpio m_gpioDIP8;
+static XGpio m_gpioLEDs8;
+
+static volatile int one_second_flag = 0;
 
 
 void timer_int_handler(void* _unused) {
-	u32 csr;
+	u32 tcsr0;
 
 	/* Read timer 0 CSR to see if it raised the interrupt */
-	csr = XTmrCtr_GetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0);
+	tcsr0 = XTmrCtr_GetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0);
 
 	/* If the interrupt occurred, then increment a counter and set one_second_flag */
-	if (csr & XTC_CSR_INT_OCCURED_MASK) {
-		count++;
+	if (tcsr0 & XTC_CSR_INT_OCCURED_MASK) {
 		one_second_flag = 1;
+
+		/* Clear the timer interrupt */
+		XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0, tcsr0);
 	}
 
-	/* Clear the timer interrupt */
-	XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0, csr);
-
-	xil_printf("tick %d\r\n", count);
 }
 
 
@@ -102,42 +103,78 @@ void init_interrupts(void) {
 }
 
 
+void do_ac97_init(void) {
+	print("Calling init_sound\r\n");
+	init_sound(48000);
+
+	// Select only Line In for Record Select
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_RECORD_SELECT_REG, 0x0404);
+
+	// Mute the mic in volume
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_MIC_VOLUME_REG, XAC97_VOL_MUTE);
+
+	// Set the Line In gain to 0dB.
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_LINE_IN_VOLUME_REG, XAC97_VOL_0dB);
+
+	// Set the Master volume to 0dB.
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, XAC97_VOL_0dB);
+
+
+
+	print("Calling playback_enable\r\n");
+	playback_enable();
+
+	print("Calling record_enable\r\n");
+	record_enable();
+}
+
+void do_gpio_init(void) {
+	// direction: Bits set to 0 are output and bits set to 1 are input.
+
+    XGpio_Initialize(&m_gpioDIP8, XPAR_DIP_SWITCHES_8BIT_DEVICE_ID);
+    XGpio_SetDataDirection(&m_gpioDIP8, 1, 0xFFFFFFFF);	// dip switches are inputs
+
+    XGpio_Initialize(&m_gpioLEDs8, XPAR_LEDS_8BIT_DEVICE_ID);
+    XGpio_SetDataDirection(&m_gpioLEDs8, 1, 0x00000000);	// LEDs are outputs
+
+}
+
+inline u8 read_DIP8(void) {
+	return XGpio_DiscreteRead(&m_gpioDIP8, 1) & 0xFF;
+}
+
 int main(void)
 {
+	u32 val=0, prev=0;
+	u8 cur_dip=0, new_dip=0;
+
 	print("Microblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
-
 	init_interrupts();
-	while (1) { }
-
-    print("Calling init_sound\r\n");
-    init_sound(48000);
-
-    // Select only Line In for Record Select
-    WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_RECORD_SELECT_REG, 0x0404);
-
-    // Mute the mic in volume
-    WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_MIC_VOLUME_REG, XAC97_VOL_MUTE);
-
-    // Set the Line In gain to 0dB.
-    WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_LINE_IN_VOLUME_REG, XAC97_VOL_0dB);
-
-    // Set the Master volume to 0dB.
-    WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, XAC97_VOL_0dB);
+	do_ac97_init();
+	do_gpio_init();
 
 
-
-    print("Calling playback_enable\r\n");
-    playback_enable();
-
-    print("Calling record_enable\r\n");
-    record_enable();
-
-    print("CPU effectively stopped.");
     while (1) {
 
+    	if (one_second_flag) {
+    		one_second_flag = 0;
+
+    		val = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + 0x0C);
+    		//xil_printf("diff = %d\r\n", val-prev);
+    		prev = val;
+    	}
+
+    	// Check if DSP select switches changed
+    	new_dip = read_DIP8();
+    	if (new_dip != cur_dip) {
+    		cur_dip = new_dip;
+
+    		xil_printf("New DIP switch value: 0x%X\r\n", cur_dip);
+    	}
     }
 
 
 
+    while (1) { }
     return 0;
 }
