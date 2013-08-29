@@ -6,6 +6,9 @@ use ieee.std_logic_unsigned.all;
 library proc_common_v3_00_a;
 use proc_common_v3_00_a.proc_common_pkg.all;
 
+library audiofx_v1_00_a;
+use audiofx_v1_00_a.all;
+
 
 --USER libraries added here
 
@@ -101,7 +104,7 @@ end entity user_logic;
 
 architecture IMP of user_logic is
 
-
+    constant C_SAMPWIDTH : integer := 16;
 
   ------------------------------------------
   -- Signals for user logic slave model s/w accessible register example
@@ -110,18 +113,18 @@ architecture IMP of user_logic is
   signal slv_reg1_04h_STATUS_RO         : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg2_08h_DSPENA_RW         : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg3_0Ch_TESTCTR_RO        : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg4                       : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg5                       : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg6                       : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg7                       : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg8                       : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg9                       : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg10                      : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg11                      : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg12                      : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg13                      : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg14                      : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg15                      : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg4_10h                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg5_14h                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg6_18h                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg7_1Ch                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg8_20h                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg9_24h                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg10_28h                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg11_2Ch                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg12_30h                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg13_34h                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg14_38h                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg15_3Ch                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg_write_sel              : std_logic_vector(0 to 15);
   signal slv_reg_read_sel               : std_logic_vector(0 to 15);
   signal slv_ip2bus_data                : std_logic_vector(0 to C_SLV_DWIDTH-1);
@@ -136,16 +139,17 @@ architecture IMP of user_logic is
     type FSL_STATE_TYPE is (FSL_IDLE, FSL_SREAD_L, FSL_SREAD_R, FSL_MWRITE_L, FSL_MWRITE_R);
     signal fsl_state: FSL_STATE_TYPE;
     
-    signal sample_l, sample_r, muxed_sample : std_logic_vector(15 downto 0);
+    --signal samp_clk_l, samp_clk_r : std_logic;
+    
+    signal sample_l, sample_r : std_logic_vector(C_SAMPWIDTH-1 downto 0);
+    
+    signal result_l, result_r, result_muxed : std_logic_vector(C_SAMPWIDTH-1 downto 0);
 
 begin
 
 
 ----------------------------------------------------------------------------------------------------   
 --- BEGIN   FSL bus transaction implementation
-
-
-
 
     FSL_PROCESS : process (FSL_Clk) is
     begin
@@ -203,14 +207,19 @@ begin
     
     -- When we're in one of the FSL_MWRITE_x states, and the outgoing FIFO isn't full, write it.
     FSL_M_Write <= not FSL_M_Full when (fsl_state = FSL_MWRITE_L) or (fsl_state = FSL_MWRITE_R)  else '0';
-    
-    -- Write the incoming data back out.
-    muxed_sample <= sample_l when (fsl_state = FSL_MWRITE_L) else
-                    sample_r when (fsl_state = FSL_MWRITE_R) else
+
+    -- Interleave the outgoing data.
+    result_muxed <= result_l when (fsl_state = FSL_MWRITE_L) else
+                    result_r when (fsl_state = FSL_MWRITE_R) else
                     (others => '0');
+    FSL_M_Data <= (0 to C_FSL_DWIDTH-result_muxed'length-1 => '0') & result_muxed;
     
-    --FSL_M_Data <= x"0000" & muxed_sample;
-    FSL_M_Data <= (0 to C_FSL_DWIDTH-muxed_sample'length-1 => '0') & muxed_sample;
+    
+    -- TEMP:
+    -- Just write the samples back out
+    result_l <= sample_l;
+    result_r <= sample_r;
+    
     
 --- END     FSL bus transaction implementation  
 ----------------------------------------------------------------------------------------------------     
@@ -253,18 +262,18 @@ begin
         --slv_reg1_04h_STATUS_RO <= (others => '0');
         slv_reg2_08h_DSPENA_RW <= (others => '0');
         --slv_reg3_0Ch_TESTCTR_RO <= (others => '0');
-        slv_reg4 <= (others => '0');
-        slv_reg5 <= (others => '0');
-        slv_reg6 <= (others => '0');
-        slv_reg7 <= (others => '0');
-        slv_reg8 <= (others => '0');
-        slv_reg9 <= (others => '0');
-        slv_reg10 <= (others => '0');
-        slv_reg11 <= (others => '0');
-        slv_reg12 <= (others => '0');
-        slv_reg13 <= (others => '0');
-        slv_reg14 <= (others => '0');
-        slv_reg15 <= (others => '0');
+        slv_reg4_10h <= (others => '0');
+        slv_reg5_14h <= (others => '0');
+        slv_reg6_18h <= (others => '0');
+        slv_reg7_1Ch <= (others => '0');
+        slv_reg8_20h <= (others => '0');
+        slv_reg9_24h <= (others => '0');
+        slv_reg10_28h <= (others => '0');
+        slv_reg11_2Ch <= (others => '0');
+        slv_reg12_30h <= (others => '0');
+        slv_reg13_34h <= (others => '0');
+        slv_reg14_38h <= (others => '0');
+        slv_reg15_3Ch <= (others => '0');
       else
         case slv_reg_write_sel is
           when "1000000000000000" =>
@@ -294,73 +303,73 @@ begin
           when "0000100000000000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg4(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg4_10h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000010000000000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg5(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg5_14h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000001000000000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg6(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg6_18h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000100000000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg7(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg7_1Ch(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000010000000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg8(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg8_20h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000001000000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg9(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg9_24h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000000100000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg10(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg10_28h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000000010000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg11(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg11_2Ch(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000000001000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg12(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg12_30h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000000000100" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg13(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg13_34h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000000000010" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg14(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg14_38h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000000000001" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg15(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg15_3Ch(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when others => null;
@@ -371,7 +380,7 @@ begin
   end process SLAVE_REG_WRITE_PROC;
 
   -- implement slave model software accessible register(s) read mux
-  SLAVE_REG_READ_PROC : process( slv_reg_read_sel, slv_reg0_00h_CTRL_RW, slv_reg1_04h_STATUS_RO, slv_reg2_08h_DSPENA_RW, slv_reg3_0Ch_TESTCTR_RO, slv_reg4, slv_reg5, slv_reg6, slv_reg7, slv_reg8, slv_reg9, slv_reg10, slv_reg11, slv_reg12, slv_reg13, slv_reg14, slv_reg15 ) is
+  SLAVE_REG_READ_PROC : process( slv_reg_read_sel, slv_reg0_00h_CTRL_RW, slv_reg1_04h_STATUS_RO, slv_reg2_08h_DSPENA_RW, slv_reg3_0Ch_TESTCTR_RO, slv_reg4_10h, slv_reg5_14h, slv_reg6_18h, slv_reg7_1Ch, slv_reg8_20h, slv_reg9_24h, slv_reg10_28h, slv_reg11_2Ch, slv_reg12_30h, slv_reg13_34h, slv_reg14_38h, slv_reg15_3Ch ) is
   begin
 
     case slv_reg_read_sel is
@@ -379,18 +388,18 @@ begin
       when "0100000000000000" => slv_ip2bus_data <= slv_reg1_04h_STATUS_RO;
       when "0010000000000000" => slv_ip2bus_data <= slv_reg2_08h_DSPENA_RW;
       when "0001000000000000" => slv_ip2bus_data <= slv_reg3_0Ch_TESTCTR_RO;
-      when "0000100000000000" => slv_ip2bus_data <= slv_reg4;
-      when "0000010000000000" => slv_ip2bus_data <= slv_reg5;
-      when "0000001000000000" => slv_ip2bus_data <= slv_reg6;
-      when "0000000100000000" => slv_ip2bus_data <= slv_reg7;
-      when "0000000010000000" => slv_ip2bus_data <= slv_reg8;
-      when "0000000001000000" => slv_ip2bus_data <= slv_reg9;
-      when "0000000000100000" => slv_ip2bus_data <= slv_reg10;
-      when "0000000000010000" => slv_ip2bus_data <= slv_reg11;
-      when "0000000000001000" => slv_ip2bus_data <= slv_reg12;
-      when "0000000000000100" => slv_ip2bus_data <= slv_reg13;
-      when "0000000000000010" => slv_ip2bus_data <= slv_reg14;
-      when "0000000000000001" => slv_ip2bus_data <= slv_reg15;
+      when "0000100000000000" => slv_ip2bus_data <= slv_reg4_10h;
+      when "0000010000000000" => slv_ip2bus_data <= slv_reg5_14h;
+      when "0000001000000000" => slv_ip2bus_data <= slv_reg6_18h;
+      when "0000000100000000" => slv_ip2bus_data <= slv_reg7_1Ch;
+      when "0000000010000000" => slv_ip2bus_data <= slv_reg8_20h;
+      when "0000000001000000" => slv_ip2bus_data <= slv_reg9_24h;
+      when "0000000000100000" => slv_ip2bus_data <= slv_reg10_28h;
+      when "0000000000010000" => slv_ip2bus_data <= slv_reg11_2Ch;
+      when "0000000000001000" => slv_ip2bus_data <= slv_reg12_30h;
+      when "0000000000000100" => slv_ip2bus_data <= slv_reg13_34h;
+      when "0000000000000010" => slv_ip2bus_data <= slv_reg14_38h;
+      when "0000000000000001" => slv_ip2bus_data <= slv_reg15_3Ch;
       when others => slv_ip2bus_data <= (others => '0');
     end case;
 
