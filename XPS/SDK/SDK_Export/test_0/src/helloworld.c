@@ -103,6 +103,21 @@ void init_interrupts(void) {
 	microblaze_enable_interrupts();
 }
 
+// vol:
+// 0 = mute
+// 32 = max
+void set_output_volume(int vol) {
+	if (vol == 0) {
+		WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, XAC97_VOL_MUTE);
+	}
+	else if (vol <= 32) {
+		u8 val = 32 - vol;
+		u16 regval = (val << 8) | val;
+		xil_printf("Setting master volume reg (02h) to 0x%04X\r\n", regval);
+		WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, regval);
+	}
+}
+
 
 void do_ac97_init(void) {
 	FUNC_ENTER();
@@ -114,13 +129,17 @@ void do_ac97_init(void) {
 	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_RECORD_SELECT_REG, 0x0404);
 
 	// Mute the mic in volume
-	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_MIC_VOLUME_REG, XAC97_VOL_MUTE);
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_MIC_VOLUME_REG, XAC97_IN_MUTE);
 
 	// Set the Line In gain to 0dB.
-	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_LINE_IN_VOLUME_REG, XAC97_VOL_0dB);
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_LINE_IN_VOLUME_REG, XAC97_IN_GAIN_0dB);
+
+	// Set the overall Record gain to 0dB.
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_RECORD_GAIN_REG, 0x0000);
 
 	// Set the Master volume to 0dB.
-	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, XAC97_VOL_0dB);
+	//WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, XAC97_VOL_0dB);
+	set_output_volume(24);
 
 
 
@@ -166,7 +185,7 @@ int main(void)
     		one_second_flag = 0;
 
     		fsl_count = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_0Ch_OFFSET);
-    		xil_printf("diff = %d\r\n", fsl_count - prev_fsl_count);
+    		//xil_printf("diff = %d\r\n", fsl_count - prev_fsl_count);
     		prev_fsl_count = fsl_count;
     	}
 

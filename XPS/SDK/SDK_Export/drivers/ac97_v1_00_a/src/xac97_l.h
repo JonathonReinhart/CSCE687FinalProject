@@ -61,10 +61,16 @@
 #define XAC97_PCM_DAC_SAMPLE_RATE_REG   0x2C	// PCM front DAC Rate
 #define XAC97_PCM_ADC_SAMPLE_RATE_REG   0x32	// PCM ADC Rate
 
-#define XAC97_VOL_MUTE          0x8000
-#define XAC97_VOL_MAX           0x0000      // 0xx00000_xxx00000    +12   dB gain
-#define XAC97_VOL_0dB           0x0808      // 0xx01000_xxx01000      0   dB gain
-#define XAC97_VOL_MIN           0x1F1F      // 0xx11111_xxx11111    -34.5 dB gain
+// Play Master Volume Register (0x02 - 0x06) values
+#define XAC97_VOL_MUTE          0x8000      // 10000000_00000000
+#define XAC97_VOL_0dB           0x0000      // 0x000000_xx000000
+#define XAC97_VOL_0dB           0x0000      // 0x000000_xx000000
+
+// Analog Mixer Input Gain Registers (0x0C - 0x18) values
+#define XAC97_IN_MUTE           0x8000      // 10000000_00000000
+#define XAC97_IN_GAIN_MAX       0x0000      // 0xx00000_xxx00000    +12   dB gain
+#define XAC97_IN_GAIN_0dB       0x0808      // 0xx01000_xxx01000      0   dB gain
+#define XAC97_IN_GAIN_MIN       0x1F1F      // 0xx11111_xxx11111    -34.5 dB gain
 
 
 /***************** Macros (Inline Functions) Definitions *********************/
