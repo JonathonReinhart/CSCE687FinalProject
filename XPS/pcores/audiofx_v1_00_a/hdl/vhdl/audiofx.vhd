@@ -300,7 +300,7 @@ architecture IMPL of audiofx is
 ----------------------------------------------------------------------------------------------------   
 --- BEGIN   FSL Bus constants/signals   
    
-    signal okay_to_transfer : std_logic;   
+
    
 --- END     FSL Bus constants/signals   
 ----------------------------------------------------------------------------------------------------     
@@ -431,16 +431,33 @@ begin
       --USER ports mapped here
       -- MAP USER PORTS ABOVE THIS LINE ------------------
 
-      Bus2IP_Clk                     => ipif_Bus2IP_Clk,
-      Bus2IP_Reset                   => rst_Bus2IP_Reset,
-      Bus2IP_Data                    => ipif_Bus2IP_Data,
-      Bus2IP_BE                      => ipif_Bus2IP_BE,
-      Bus2IP_RdCE                    => user_Bus2IP_RdCE,
-      Bus2IP_WrCE                    => user_Bus2IP_WrCE,
-      IP2Bus_Data                    => user_IP2Bus_Data,
-      IP2Bus_RdAck                   => user_IP2Bus_RdAck,
-      IP2Bus_WrAck                   => user_IP2Bus_WrAck,
-      IP2Bus_Error                   => user_IP2Bus_Error
+        Bus2IP_Clk                     => ipif_Bus2IP_Clk,
+        Bus2IP_Reset                   => rst_Bus2IP_Reset,
+        Bus2IP_Data                    => ipif_Bus2IP_Data,
+        Bus2IP_BE                      => ipif_Bus2IP_BE,
+        Bus2IP_RdCE                    => user_Bus2IP_RdCE,
+        Bus2IP_WrCE                    => user_Bus2IP_WrCE,
+        IP2Bus_Data                    => user_IP2Bus_Data,
+        IP2Bus_RdAck                   => user_IP2Bus_RdAck,
+        IP2Bus_WrAck                   => user_IP2Bus_WrAck,
+        IP2Bus_Error                   => user_IP2Bus_Error,
+
+        --- FSL
+        FSL_Clk         => FSL_Clk,
+        FSL_Rst         => FSL_Rst,
+
+        FSL_S_Clk       => FSL_S_Clk,
+        FSL_S_Read      => FSL_S_Read,
+        FSL_S_Data      => FSL_S_Data,
+        FSL_S_Control   => FSL_S_Control,
+        FSL_S_Exists    => FSL_S_Exists,
+
+        FSL_M_Clk       => FSL_M_Clk,
+        FSL_M_Write     => FSL_M_Write,
+        FSL_M_Data      => FSL_M_Data,
+        FSL_M_Control   => FSL_M_Control,
+        FSL_M_Full      => FSL_M_Full
+        -- FSL
     );
 
   ------------------------------------------
@@ -474,15 +491,7 @@ begin
 ----------------------------------------------------------------------------------------------------   
 --- BEGIN   FSL Bus implementation
 
-    -- Simply shove a sample through when it's available, and clear to send.
-    okay_to_transfer <= FSL_S_Exists and not FSL_M_Full;
-    
-    FSL_S_Read <= okay_to_transfer;
-    
-    -- ERROR:HDLParsers:3329 Expression in type conversion to std_logic_vector has 3 possible definitions in this scope, for example, SIGNED and SIGNED.
-    -- FSL_M_Data <= std_logic_vector(-signed(FSL_S_Data));
-    FSL_M_Data <= FSL_S_Data;
-    FSL_M_Write <= okay_to_transfer;
+
 
 --- END     FSL Bus implementation
 ----------------------------------------------------------------------------------------------------  
