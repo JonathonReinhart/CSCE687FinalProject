@@ -120,8 +120,10 @@ entity audiofx is
         C_SPLB_SMALLEST_MASTER         : integer              := 32;
         C_SPLB_CLK_PERIOD_PS           : integer              := 10000;
         C_INCLUDE_DPHASE_TIMER         : integer              := 0;
-        C_FAMILY                       : string               := "virtex6"
+        C_FAMILY                       : string               := "virtex6";
         -- END  PLB Bus protocol parameters
+        
+        C_FSL_DWIDTH      : integer                   := 32
     );
     port (
     
@@ -423,7 +425,9 @@ begin
       -- MAP USER GENERICS ABOVE THIS LINE ---------------
 
       C_SLV_DWIDTH                   => USER_SLV_DWIDTH,
-      C_NUM_REG                      => USER_NUM_REG
+      C_NUM_REG                      => USER_NUM_REG,
+      
+      C_FSL_DWIDTH                   => C_FSL_DWIDTH
     )
     port map
     (

@@ -39,8 +39,10 @@ entity user_logic is
         -- DO NOT EDIT BELOW THIS LINE ---------------------
         -- Bus protocol parameters, do not add to or delete
         C_SLV_DWIDTH                   : integer              := 32;
-        C_NUM_REG                      : integer              := 16
+        C_NUM_REG                      : integer              := 16;
         -- DO NOT EDIT ABOVE THIS LINE ---------------------
+        
+        C_FSL_DWIDTH      : integer                   := 32
     );
     port
     (
@@ -69,13 +71,13 @@ entity user_logic is
 
         FSL_S_Clk       : in  std_logic;
         FSL_S_Read      : out std_logic;
-        FSL_S_Data      : in  std_logic_vector(0 to 31);
+        FSL_S_Data      : in  std_logic_vector(0 to C_FSL_DWIDTH-1);
         FSL_S_Control   : in  std_logic;
         FSL_S_Exists    : in  std_logic;
 
         FSL_M_Clk       : in  std_logic;
         FSL_M_Write     : out std_logic;
-        FSL_M_Data      : out std_logic_vector(0 to 31);
+        FSL_M_Data      : out std_logic_vector(0 to C_FSL_DWIDTH-1);
         FSL_M_Control   : out std_logic;
         FSL_M_Full      : in  std_logic
         -- END  FSL Bus ports        
@@ -131,10 +133,10 @@ architecture IMP of user_logic is
   --------------------------------------
   -- FSL
   
-    type FSL_STATE_TYPE is (FSL_IDLE, FSL_SREAD, FSL_MWRITE);
+    type FSL_STATE_TYPE is (FSL_IDLE, FSL_SREAD_L, FSL_SREAD_R, FSL_MWRITE_L, FSL_MWRITE_R);
     signal fsl_state: FSL_STATE_TYPE;
     
-    signal fsl_sample_reg : std_logic_vector(0 to 31);
+    signal sample_l, sample_r, muxed_sample : std_logic_vector(15 downto 0);
 
 begin
 
@@ -150,46 +152,65 @@ begin
         if rising_edge(FSL_Clk) then
             if FSL_Rst = '1' then
                 fsl_state <= FSL_IDLE;
-                fsl_sample_reg <= (others => '0');
+                sample_l <= (others => '0');
+                sample_r <= (others => '0');
             
             else    -- not reset
                 case fsl_state is
+                    -- Idle
                     when FSL_IDLE =>
                         if (FSL_S_Exists = '1') then
-                            fsl_state <= FSL_SREAD;
+                            fsl_state <= FSL_SREAD_L;
                         end if;
-                    
-                    when FSL_SREAD =>
+                        
+                    -- Read the Left channel
+                    when FSL_SREAD_L =>   
                         if (FSL_S_Exists = '1') then
-                            fsl_sample_reg <= FSL_S_Data;   -- latch in slave data
-                            fsl_state <= FSL_MWRITE;
+                            sample_l <= FSL_S_Data(C_FSL_DWIDTH - 16 to C_FSL_DWIDTH - 1);
+                            fsl_state <= FSL_SREAD_R;
                             
                             -- Count input samples
                             slv_reg3_0Ch_TESTCTR_RO <= slv_reg3_0Ch_TESTCTR_RO + 1;
                         end if;
-                    
-                    when FSL_MWRITE =>
+                    -- Read the Right channel
+                    when FSL_SREAD_R =>   
+                        if (FSL_S_Exists = '1') then
+                            sample_r <= FSL_S_Data(C_FSL_DWIDTH - 16 to C_FSL_DWIDTH - 1);
+                            fsl_state <= FSL_MWRITE_L;
+                            
+                            -- Count input samples
+                            --slv_reg3_0Ch_TESTCTR_RO <= slv_reg3_0Ch_TESTCTR_RO + 1;
+                        end if;
+                        
+                    -- Write the Left channel
+                    when FSL_MWRITE_L =>
+                        if (FSL_M_Full = '0') then
+                            fsl_state <= FSL_MWRITE_R;
+                        end if;
+                    -- Write the Right channel
+                    when FSL_MWRITE_R =>
                         if (FSL_M_Full = '0') then
                             fsl_state <= FSL_IDLE;
                         end if;
                         
-                    end case;
-                    
+                end case;
             end if;
         end if;  -- rising_edge(FSL_Clk)
     end process FSL_PROCESS;
     
-    -- When we're in the FSL_SREAD state, and there's incoming data, read it.
-    FSL_S_Read  <= FSL_S_Exists   when fsl_state = FSL_SREAD   else '0';
+    -- When we're in one of the FSL_SREAD_x states, and there's incoming data, read it.
+    FSL_S_Read  <= FSL_S_Exists   when (fsl_state = FSL_SREAD_L) or (fsl_state = FSL_SREAD_R)   else '0';
     
-    -- When we're in the FSL_MWRITE state, and the outgoing FIFO isn't full, write it.
-    FSL_M_Write <= not FSL_M_Full when fsl_state = FSL_MWRITE  else '0';
+    -- When we're in one of the FSL_MWRITE_x states, and the outgoing FIFO isn't full, write it.
+    FSL_M_Write <= not FSL_M_Full when (fsl_state = FSL_MWRITE_L) or (fsl_state = FSL_MWRITE_R)  else '0';
     
     -- Write the incoming data back out.
-    FSL_M_Data <= fsl_sample_reg;
+    muxed_sample <= sample_l when (fsl_state = FSL_MWRITE_L) else
+                    sample_r when (fsl_state = FSL_MWRITE_R) else
+                    (others => '0');
     
-    
-
+    --FSL_M_Data <= x"0000" & muxed_sample;
+    FSL_M_Data <= (0 to C_FSL_DWIDTH-muxed_sample'length-1 => '0') & muxed_sample;
     
 --- END     FSL bus transaction implementation  
 ----------------------------------------------------------------------------------------------------     

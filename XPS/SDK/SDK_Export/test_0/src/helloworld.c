@@ -166,7 +166,7 @@ int main(void)
     		one_second_flag = 0;
 
     		fsl_count = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_0Ch_OFFSET);
-    		//xil_printf("diff = %d\r\n", fsl_count - prev_fsl_count);
+    		xil_printf("diff = %d\r\n", fsl_count - prev_fsl_count);
     		prev_fsl_count = fsl_count;
     	}
 
