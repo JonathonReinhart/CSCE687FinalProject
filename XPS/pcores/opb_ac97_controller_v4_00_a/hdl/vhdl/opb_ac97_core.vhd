@@ -267,7 +267,7 @@ begin  -- architecture IMP
   begin  -- process Setup_Slot0
     if Bit_Clk'event and Bit_Clk = '1' then  -- rising clock edge
       if (delay_4 and last_slot) = '1' then
-        slot0(15)         <= valid_Frame;
+        slot0(15)         <= valid_Frame;                       -- 4.3.1  Slot 0: TAG / Codec ID
         slot0(14)         <= valid_Control_Addr;
         slot0(13)         <= valid_Control_Data;
         slot0(12)         <= valid_Playback_Data_L;
@@ -281,12 +281,14 @@ begin  -- architecture IMP
 
   valid_Frame <= valid_Control_Addr or valid_Playback_Data_L or valid_Playback_Data_R;
 
-  slot1(19)           <= AC97_Reg_Read;
-  slot1(18 downto 12) <= AC97_Reg_Addr;
-  slot1(11 downto 0) <= (others => '0');
+  -- 4.3.2  Slot 1: Command Address Port
+  slot1(19)           <= AC97_Reg_Read;         -- Bit(19) Read/Write command  (1=read, 0=write)
+  slot1(18 downto 12) <= AC97_Reg_Addr;         -- Bit(18:12)  Control Register Index
+  slot1(11 downto 0) <= (others => '0');        -- Bit(11:0)  Reserved (Stuffed with 0’s)
 
-  slot2(19 downto 4) <= AC97_Reg_Write_Data;
-  slot2( 3 downto 0) <= (others => '0');
+  -- 4.3.3  Slot 2: Command Data Port
+  slot2(19 downto 4) <= AC97_Reg_Write_Data;    -- Bit(19:4)  Control Register Write Data 
+  slot2( 3 downto 0) <= (others => '0');        -- Bit(3:0) Reserved
 
   -----------------------------------------------------------------------------
   -- Generating the Sync signal
@@ -409,19 +411,19 @@ begin  -- architecture IMP
     new_data_out <= (others => '0');
     read_fifo    <= '0';
     if (start_sync = '1') then
-      new_data_out(19 downto 4) <= slot0;
+      new_data_out(19 downto 4) <= slot0;                   -- 4.3.1  Slot 0: TAG / Codec ID
       read_fifo                 <= '0';
     elsif (slot_end = '1') then
       read_fifo    <= '0';
       case slot_No is
-        when 0 => new_data_out(slot1'range) <= slot1;
-        when 1 => new_data_out(slot2'range) <= slot2;
-        when 2 =>
+        when 0 => new_data_out(slot1'range) <= slot1;       -- 4.3.2  Slot 1: Command Address Port
+        when 1 => new_data_out(slot2'range) <= slot2;       -- 4.3.3  Slot 2: Command Data Port
+        when 2 =>                                           -- 4.3.4  Slot 3: PCM Playback Left Channel
           if (C_PLAYBACK = 1) then
             new_data_out(19 downto 4) <= In_Data_FIFO_i;
             read_fifo                 <= slot0(12);
           end if;
-        when 3 =>
+        when 3 =>                                           -- 4.3.5  Slot 4: PCM Playback Right Channe
           if (C_PLAYBACK = 1) then
             new_data_out(19 downto 4) <= In_Data_FIFO_i;
             read_fifo                 <= slot0(11);
