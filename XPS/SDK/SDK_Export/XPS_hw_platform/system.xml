@@ -1,5 +1,5 @@
 
-<EDKSYSTEM EDKVERSION="13.2" EDWVERSION="1.2" TIMESTAMP="Wed Aug 28 20:59:05 2013">
+<EDKSYSTEM EDKVERSION="13.2" EDWVERSION="1.2" TIMESTAMP="Thu Aug 29 22:20:17 2013">
 
   <SYSTEMINFO ARCH="virtex5" DEVICE="xc5vfx70t" PACKAGE="ff1136" PART="xc5vfx70tff1136-1" SOURCE="C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/SVN_3/XPS/system.xmp" SPEEDGRADE="-1"/>
 
@@ -11508,15 +11508,15 @@
         </MEMRANGE>
       </MEMORYMAP>
       <RESOURCES>
-        <RESOURCE PERCENT="1" TOTAL="44800" TYPE="Slice Registers" USED="690"/>
-        <RESOURCE PERCENT="1" TOTAL="44800" TYPE="Slice LUTs" USED="639"/>
-        <RESOURCE PERCENT="NA" TOTAL="NA" TYPE="LUT Flip Flop pairs used" USED="1154"/>
-        <RESOURCE PERCENT="15" TOTAL="1154" TYPE="fully used LUT-FF pairs" USED="175"/>
-        <RESOURCE PERCENT="NA" TOTAL="NA" TYPE="unique control sets" USED="71"/>
+        <RESOURCE PERCENT="1" TOTAL="44800" TYPE="Slice Registers" USED="678"/>
+        <RESOURCE PERCENT="1" TOTAL="44800" TYPE="Slice LUTs" USED="560"/>
+        <RESOURCE PERCENT="NA" TOTAL="NA" TYPE="LUT Flip Flop pairs used" USED="1111"/>
+        <RESOURCE PERCENT="11" TOTAL="1111" TYPE="fully used LUT-FF pairs" USED="127"/>
+        <RESOURCE PERCENT="NA" TOTAL="NA" TYPE="unique control sets" USED="77"/>
         <RESOURCE PERCENT="NA" TOTAL="NA" TYPE="IOs" USED="343"/>
         <RESOURCE PERCENT="0" TOTAL="640" TYPE="bonded IOBs" USED="0"/>
       </RESOURCES>
-      <TIMING FREQUNITS="MHz" MAXFREQ="237.965">
+      <TIMING FREQUNITS="MHz" MAXFREQ="238.305">
         <TIMECLK SIGNAME="SPLB_Clk"/>
         <TIMECLK SIGNAME="FSL_Clk"/>
       </TIMING>

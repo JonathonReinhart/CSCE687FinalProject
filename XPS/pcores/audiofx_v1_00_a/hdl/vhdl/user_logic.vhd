@@ -142,6 +142,7 @@ architecture IMP of user_logic is
     --signal samp_clk_l, samp_clk_r : std_logic;
     
     signal sample_l, sample_r : std_logic_vector(C_SAMPWIDTH-1 downto 0);
+    signal samp_ena_l, samp_ena_r : std_logic;      -- clock enables for DSP logic
     
     signal result_l, result_r, result_muxed : std_logic_vector(C_SAMPWIDTH-1 downto 0);
 
@@ -158,19 +159,24 @@ begin
                 fsl_state <= FSL_IDLE;
                 sample_l <= (others => '0');
                 sample_r <= (others => '0');
-            
+                samp_ena_l <= '0';
+                samp_ena_r <= '0';
+                
             else    -- not reset
                 case fsl_state is
                     -- Idle
                     when FSL_IDLE =>
                         if (FSL_S_Exists = '1') then
                             fsl_state <= FSL_SREAD_L;
+                            samp_ena_l <= '0';
+                            samp_ena_r <= '0';
                         end if;
                         
                     -- Read the Left channel
                     when FSL_SREAD_L =>   
                         if (FSL_S_Exists = '1') then
                             sample_l <= FSL_S_Data(C_FSL_DWIDTH - 16 to C_FSL_DWIDTH - 1);
+                            samp_ena_l <= '1';
                             fsl_state <= FSL_SREAD_R;
                             
                             -- Count input samples
@@ -180,6 +186,7 @@ begin
                     when FSL_SREAD_R =>   
                         if (FSL_S_Exists = '1') then
                             sample_r <= FSL_S_Data(C_FSL_DWIDTH - 16 to C_FSL_DWIDTH - 1);
+                            samp_ena_r <= '1';
                             fsl_state <= FSL_MWRITE_L;
                             
                             -- Count input samples
@@ -216,9 +223,39 @@ begin
     
     
     -- TEMP:
-    -- Just write the samples back out
-    result_l <= sample_l;
-    result_r <= sample_r;
+    -- Just write the samples back out - in the opposite channel for test!
+    result_l <= sample_r;   --sample_l;
+    result_r <= sample_l;   --sample_r;
+    
+    
+    
+    -- See if we're getting any signal
+    AVG_LEVEL_L : entity audiofx_v1_00_a.rollavg
+    generic map (
+        XY_WIDTH => 16,
+        A_SHIFT => 8
+    )
+    port map (
+        clk => FSL_Clk,
+        samp_ena => samp_ena_l,
+        reset => FSL_Rst,
+        x => sample_l,
+        y => slv_reg4_10h(16 to 31)
+    );
+    
+    AVG_LEVEL_R : entity audiofx_v1_00_a.rollavg
+    generic map (
+        XY_WIDTH => 16,
+        A_SHIFT => 12
+    )
+    port map (
+        clk => FSL_Clk,
+        samp_ena => samp_ena_r,
+        reset => FSL_Rst,
+        x => sample_r,
+        y => slv_reg5_14h(16 to 31)
+    );
+
     
     
 --- END     FSL bus transaction implementation  
@@ -262,8 +299,8 @@ begin
         --slv_reg1_04h_STATUS_RO <= (others => '0');
         slv_reg2_08h_DSPENA_RW <= (others => '0');
         --slv_reg3_0Ch_TESTCTR_RO <= (others => '0');
-        slv_reg4_10h <= (others => '0');
-        slv_reg5_14h <= (others => '0');
+        --slv_reg4_10h <= (others => '0');
+        --slv_reg5_14h <= (others => '0');
         slv_reg6_18h <= (others => '0');
         slv_reg7_1Ch <= (others => '0');
         slv_reg8_20h <= (others => '0');
@@ -300,18 +337,18 @@ begin
           --      slv_reg3_0Ch_TESTCTR_RO(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
           --    end if;
           --  end loop;
-          when "0000100000000000" =>
-            for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
-              if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg4_10h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
-              end if;
-            end loop;
-          when "0000010000000000" =>
-            for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
-              if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg5_14h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
-              end if;
-            end loop;
+          --when "0000100000000000" =>
+          --  for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
+          --    if ( Bus2IP_BE(byte_index) = '1' ) then
+          --      slv_reg4_10h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+          --    end if;
+          --  end loop;
+          --when "0000010000000000" =>
+          --  for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
+          --    if ( Bus2IP_BE(byte_index) = '1' ) then
+          --      slv_reg5_14h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+          --    end if;
+          --  end loop;
           when "0000001000000000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then

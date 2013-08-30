@@ -6,5 +6,9 @@
 
 lib proc_common_v3_00_a  all 
 lib plbv46_slave_single_v1_01_a  all 
-lib audiofx_v1_00_a user_logic vhdl
-lib audiofx_v1_00_a audiofx vhdl
+
+lib audiofx_v1_00_a rollavg     vhdl
+
+lib audiofx_v1_00_a user_logic  vhdl
+lib audiofx_v1_00_a audiofx     vhdl
+
