@@ -157,7 +157,42 @@ begin
  
     -- Map the low bits of the register to the enables signal
     dsp_enables <= slv_reg2_08h_DSPENA_RW(C_SLV_DWIDTH-NUM_DSPS to C_SLV_DWIDTH-1);
-    
+
+    --------------------------------------
+    -- DSP Switchers
+    SWITCHER_L : entity audiofx_v1_00_a.dsp_switcher
+        generic map (
+            NUM_DSPS => NUM_DSPS
+        )
+        port map (
+            sys_clk => FSL_Clk,
+            samp_ena => samp_ena_L,
+            reset => FSL_Rst,
+            samp_in => sample_L,
+            samp_out => result_L,
+            
+            dsp_enables => dsp_enables,
+            dsp_sends => dsp_sends_L,
+            dsp_returns => dsp_returns_L
+        );
+        
+    SWITCHER_R : entity audiofx_v1_00_a.dsp_switcher
+        generic map (
+            NUM_DSPS => NUM_DSPS
+        )
+        port map (
+            sys_clk => FSL_Clk,
+            samp_ena => samp_ena_R,
+            reset => FSL_Rst,
+            samp_in => sample_R,
+            samp_out => result_R,
+            
+            dsp_enables => dsp_enables,
+            dsp_sends => dsp_sends_R,
+            dsp_returns => dsp_returns_R
+        );        
+        
+        
     --------------------------------------
     -- DSP_0    Configurable gain
     --      20h = Gain (L and R)
@@ -187,33 +222,15 @@ begin
 
     --------------------------------------
     -- DSP_1    -6 dB Gain
-    --dsp_returns_L(1) <= dsp_sends_L(1);
     dsp_returns_L(1) <= std_logic_vector( shift_right( signed(dsp_sends_L(1)), 1) );
+    dsp_returns_R(1) <= std_logic_vector( shift_right( signed(dsp_sends_R(1)), 1) );
     
     --------------------------------------
-    -- DSP_2
-    --dsp_returns_L(2) <= dsp_sends_L(2);
+    -- DSP_2    Silence
     dsp_returns_L(2) <= (others => '0');
+    dsp_returns_R(2) <= (others => '0');
 
-
-    SWITCHER_L : entity audiofx_v1_00_a.dsp_switcher
-        generic map (
-            NUM_DSPS => NUM_DSPS
-        )
-        port map (
-            sys_clk => FSL_Clk,
-            samp_ena => samp_ena_L,
-            reset => FSL_Rst,
-            samp_in => sample_L,
-            samp_out => result_L,
-            
-            dsp_enables => dsp_enables,
-            dsp_sends => dsp_sends_L,
-            dsp_returns => dsp_returns_L
-        );
         
-    -- Leave the right channel Dry for now
-    result_R <= sample_R;
 
 ----------------------------------------------------------------------------------------------------
 --- BEGIN   FSL bus transaction implementation

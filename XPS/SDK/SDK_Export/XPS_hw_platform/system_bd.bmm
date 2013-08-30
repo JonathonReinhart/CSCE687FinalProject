@@ -21,8 +21,8 @@ ADDRESS_MAP microblaze_0 MICROBLAZE 100
 
     ADDRESS_SPACE lmb_bram_combined RAMB32 [0x00000000:0x00001FFF]
         BUS_BLOCK
-            lmb_bram/lmb_bram/ramb36_0 [31:16] INPUT = lmb_bram_combined_0.mem PLACED = X4Y15;
-            lmb_bram/lmb_bram/ramb36_1 [15:0] INPUT = lmb_bram_combined_1.mem PLACED = X4Y14;
+            lmb_bram/lmb_bram/ramb36_0 [31:16] INPUT = lmb_bram_combined_0.mem PLACED = X3Y20;
+            lmb_bram/lmb_bram/ramb36_1 [15:0] INPUT = lmb_bram_combined_1.mem PLACED = X3Y19;
         END_BUS_BLOCK;
     END_ADDRESS_SPACE;
 
