@@ -178,9 +178,6 @@ begin
                             sample_l <= FSL_S_Data(C_FSL_DWIDTH - 16 to C_FSL_DWIDTH - 1);
                             samp_ena_l <= '1';
                             fsl_state <= FSL_SREAD_R;
-                            
-                            -- Count input samples
-                            slv_reg3_0Ch_TESTCTR_RO <= slv_reg3_0Ch_TESTCTR_RO + 1;
                         end if;
                     -- Read the Right channel
                     when FSL_SREAD_R =>   
@@ -188,9 +185,6 @@ begin
                             sample_r <= FSL_S_Data(C_FSL_DWIDTH - 16 to C_FSL_DWIDTH - 1);
                             samp_ena_r <= '1';
                             fsl_state <= FSL_MWRITE_L;
-                            
-                            -- Count input samples
-                            --slv_reg3_0Ch_TESTCTR_RO <= slv_reg3_0Ch_TESTCTR_RO + 1;
                         end if;
                         
                     -- Write the Left channel
@@ -205,6 +199,15 @@ begin
                         end if;
                         
                 end case;
+                
+                -- Make sure the "sample present" clock enables are only active for one clock cycle.
+                if (samp_ena_l = '1') then
+                    samp_ena_l <= '0';
+                end if;
+                if (samp_ena_r = '1') then
+                    samp_ena_r <= '0';
+                end if;
+                
             end if;
         end if;  -- rising_edge(FSL_Clk)
     end process FSL_PROCESS;
@@ -246,7 +249,7 @@ begin
     AVG_LEVEL_R : entity audiofx_v1_00_a.rollavg
     generic map (
         XY_WIDTH => 16,
-        A_SHIFT => 12
+        A_SHIFT => 8
     )
     port map (
         clk => FSL_Clk,
@@ -255,6 +258,18 @@ begin
         x => sample_r,
         y => slv_reg5_14h(16 to 31)
     );
+    
+    
+    COUNT_SAMPLES : process (FSL_Clk) is
+    begin
+        if rising_edge(FSL_Clk) then
+            if samp_ena_l = '1' then
+                slv_reg3_0Ch_TESTCTR_RO <= slv_reg3_0Ch_TESTCTR_RO + 1;
+            end if;
+        end if; -- rising_edge(FSL_Clk)
+    end process;
+    
+
 
     
     
