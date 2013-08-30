@@ -72,6 +72,18 @@
 #define XAC97_IN_GAIN_0dB       0x0808      // 0xx01000_xxx01000      0   dB gain
 #define XAC97_IN_GAIN_MIN       0x1F1F      // 0xx11111_xxx11111    -34.5 dB gain
 
+// Record Select (1Ah) values
+#define XAC97_RECORD_MIC            0x0000
+#define XAC97_RECORD_CD_IN          0x0101
+#define XAC97_RECORD_VID_IN         0x0202
+#define XAC97_RECORD_AUX_IN         0x0303
+#define XAC97_RECORD_LINE_IN        0x0404
+#define XAC97_RECORD_STEREO_MIX     0x0505
+#define XAC97_RECORD_MONO_MIX       0x0606
+#define XAC97_RECORD_PHONE          0x0707
+
+#define XAC97_RecordSelect(Base, Record) \
+    WriteAC97Reg((Base), XAC97_RECORD_SELECT_REG, (Record));
 
 /***************** Macros (Inline Functions) Definitions *********************/
 

@@ -119,26 +119,42 @@ void set_output_volume(int vol) {
 }
 
 
+//#define ANALOG_BYPASS
+
 void do_ac97_init(void) {
 	FUNC_ENTER();
 
 	print("Calling init_sound\r\n");
 	init_sound(48000);
 
-	// Select only Line In for Record Select
-	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_RECORD_SELECT_REG, 0x0404);
-
-	// Mute the mic in volume
-	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_MIC_VOLUME_REG, XAC97_IN_MUTE);
-
-	// Set the Line In gain to 0dB.
-	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_LINE_IN_VOLUME_REG, XAC97_IN_GAIN_0dB);
+	// Select Line In for Recording
+	XAC97_RecordSelect(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_RECORD_LINE_IN);
 
 	// Set the overall Record gain to 0dB.
 	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_RECORD_GAIN_REG, 0x0000);
 
+
+	/////////////////////////////
+	// Set analog mixer volumes
+
+	// Mute the mic in volume
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_MIC_VOLUME_REG, XAC97_IN_MUTE);
+
+#ifdef ANALOG_BYPASS
+	// Set the Line In gain to 0dB.
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_LINE_IN_VOLUME_REG, XAC97_IN_GAIN_0dB);		// LINE IN = 0dB
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_PCM_OUT_VOLUME_REG, XAC97_IN_MUTE);			// PCM OUT = Mute
+#else
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_LINE_IN_VOLUME_REG, XAC97_IN_MUTE);			// LINE IN = Mute
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_PCM_OUT_VOLUME_REG, XAC97_IN_GAIN_0dB);		// PCM OUT = 0dB
+#endif
+
+
+
+
+
+
 	// Set the Master volume to 0dB.
-	//WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, XAC97_VOL_0dB);
 	set_output_volume(24);
 
 
@@ -166,6 +182,21 @@ inline u8 read_DIP8(void) {
 	return XGpio_DiscreteRead(&m_gpioDIP8, 1) & 0xFF;
 }
 
+void list_regs(void) {
+	int i;
+	u16 val;
+
+	xil_printf("0x%X\r\n", ReadAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_RECORD_SELECT_REG));
+
+	print("AC'97 registers:\r\n");
+	for (i=0; i<=0x3A; i+=2) {
+		val = ReadAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, i);
+
+		xil_printf("  [%02Xh] = 0x%04X\r\n", i, val);
+	}
+}
+
+
 int main(void)
 {
 	u32 fsl_count=0, prev_fsl_count=0;
@@ -177,6 +208,10 @@ int main(void)
 	do_ac97_init();
 	do_gpio_init();
 
+	list_regs();
+
+	//while (1) {}
+
 
 	print("Entering main loop...\r\n");
     while (1) {
@@ -187,6 +222,12 @@ int main(void)
     		fsl_count = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_0Ch_OFFSET);
     		//xil_printf("diff = %d\r\n", fsl_count - prev_fsl_count);
     		prev_fsl_count = fsl_count;
+
+    		temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + 0x10);
+    		xil_printf("Left avg  = %d\r\n");
+
+    		temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + 0x14);
+			xil_printf("Right avg = %d\r\n");
     	}
 
     	// Check if DSP select switches changed
