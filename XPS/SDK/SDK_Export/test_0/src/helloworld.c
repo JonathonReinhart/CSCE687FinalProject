@@ -32,6 +32,14 @@
 
 #define FUNC_ENTER()	xil_printf(" %s()\r\n", __FUNCTION__)
 
+
+#define PB5_N	0x01	// North
+#define PB5_E	0x02	// East
+#define PB5_S	0x04	// South
+#define PB5_W	0x08	// West
+#define PB5_C	0x10	// Center
+
+
 static XGpio m_gpioDIP8;
 static XGpio m_gpioLEDs8;
 static XGpio m_gpioPBs5;
@@ -221,11 +229,10 @@ void set_gain(uint gain) {
 
 	regval = gain << (16-3);
 
-	xil_printf("Programming gain reg (20h) to 0x%08X\r\n", regval);
+	xil_printf("Setting gain to %d -> Programming gain reg (20h) to 0x%08X\r\n", gain, regval);
 
 	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x20, regval);
 }
-
 
 
 int main(void)
@@ -233,6 +240,8 @@ int main(void)
 	u8 cur_dip=0, new_dip=0;
 	u8 cur_pb=0, new_pb=0;
 	u32 temp;
+
+	uint gainval = 8;
 
 	print("Microblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
 	init_interrupts();
@@ -283,8 +292,22 @@ int main(void)
     	new_pb = read_PB5();
     	if (new_pb != cur_pb) {
     		cur_pb = new_pb;
+    		//xil_printf("New Pushbuttons value: 0x%X\r\n", new_pb);
 
-    		xil_printf("New Pushbuttons value: 0x%X\r\n", new_pb);
+
+    		if (new_pb & PB5_N) {		// Up pressed?
+    			if (gainval < 40) {
+    				gainval++;
+    				set_gain(gainval);
+    			}
+    		}
+    		else if (new_pb & PB5_S) {	// Down pressed?
+    			if (gainval > 0) {
+    				gainval--;
+    				set_gain(gainval);
+    			}
+    		}
+
     	}
     }
 
