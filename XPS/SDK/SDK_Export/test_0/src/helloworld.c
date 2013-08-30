@@ -34,6 +34,7 @@
 
 static XGpio m_gpioDIP8;
 static XGpio m_gpioLEDs8;
+static XGpio m_gpioPBs5;
 
 static volatile int one_second_flag = 0;
 
@@ -173,8 +174,12 @@ void do_gpio_init(void) {
     XGpio_Initialize(&m_gpioDIP8, XPAR_DIP_SWITCHES_8BIT_DEVICE_ID);
     XGpio_SetDataDirection(&m_gpioDIP8, 1, 0xFFFFFFFF);	// dip switches are inputs
 
+    XGpio_Initialize(&m_gpioPBs5, XPAR_PUSH_BUTTONS_5BIT_DEVICE_ID);
+	XGpio_SetDataDirection(&m_gpioPBs5, 1, 0xFFFFFFFF);	// push buttons are inputs
+
     XGpio_Initialize(&m_gpioLEDs8, XPAR_LEDS_8BIT_DEVICE_ID);
     XGpio_SetDataDirection(&m_gpioLEDs8, 1, 0x00000000);	// LEDs are outputs
+
 
 }
 
@@ -182,6 +187,11 @@ inline u8 read_DIP8(void) {
 	return XGpio_DiscreteRead(&m_gpioDIP8, 1) & 0xFF;
 }
 
+inline u8 read_PB5(void) {
+	return XGpio_DiscreteRead(&m_gpioPBs5, 1) & 0xFF;
+}
+
+/*
 void list_regs(void) {
 	int i;
 	u16 val;
@@ -195,12 +205,33 @@ void list_regs(void) {
 		xil_printf("  [%02Xh] = 0x%04X\r\n", i, val);
 	}
 }
+*/
+
+// gain 	A number in 1/8ths. For example:
+// gain		multiplier
+//	0		0.0  	(-inf dB)
+//  4		0.5  	(-6 dB)
+//  8       1.0  	(0 dB)
+//  12		1.5  	(3.5 dB)
+//  16		2.0		(6 dB)
+void set_gain(uint gain) {
+	u32 regval;
+	// The 32-bit gain register is fixed-point, with 16 integer, 16 fractional bits.
+	//XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x20, 0x00010000);	// 1.0
+
+	regval = gain << (16-3);
+
+	xil_printf("Programming gain reg (20h) to 0x%08X\r\n", regval);
+
+	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x20, regval);
+}
+
 
 
 int main(void)
 {
-	u32 fsl_count=0, prev_fsl_count=0;
 	u8 cur_dip=0, new_dip=0;
+	u8 cur_pb=0, new_pb=0;
 	u32 temp;
 
 	print("Microblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
@@ -208,19 +239,23 @@ int main(void)
 	do_ac97_init();
 	do_gpio_init();
 
-	list_regs();
-
+	//list_regs();
 	//while (1) {}
+
+	set_gain(8);
 
 
 	print("Entering main loop...\r\n");
     while (1) {
 
+    	/*
     	if (one_second_flag) {
+    		u32 fsl_count=0, prev_fsl_count=0;
+
     		one_second_flag = 0;
 
     		fsl_count = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_0Ch_OFFSET);
-    		//xil_printf("diff = %d\r\n", fsl_count - prev_fsl_count);
+    		xil_printf("\r\ndiff = %d\r\n", fsl_count - prev_fsl_count);
     		prev_fsl_count = fsl_count;
 
     		temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + 0x10);
@@ -229,6 +264,7 @@ int main(void)
     		temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + 0x14);
 			xil_printf("Right avg = %d\r\n");
     	}
+    	*/
 
     	// Check if DSP select switches changed
     	new_dip = read_DIP8();
@@ -241,6 +277,14 @@ int main(void)
     		temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET);
 
     		xil_printf("Enabled DSPs: 0x%X\r\n", temp);
+    	}
+
+    	// Check if push buttons have been pressed or released
+    	new_pb = read_PB5();
+    	if (new_pb != cur_pb) {
+    		cur_pb = new_pb;
+
+    		xil_printf("New Pushbuttons value: 0x%X\r\n", new_pb);
     	}
     }
 

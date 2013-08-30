@@ -12,7 +12,6 @@ entity dsp_gainstage is
         A_FRACTIONAL_BITS   : natural := 16
     );
     port (
-        samp_clk    : in  std_logic;
         x           : in  std_logic_vector(XY_WIDTH-1 downto 0);    -- input
         a           : in  std_logic_vector(A_WIDTH-1  downto 0);    -- gain
         y           : out std_logic_vector(XY_WIDTH-1 downto 0)     -- output 

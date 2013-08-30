@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 library proc_common_v3_00_a;
 use proc_common_v3_00_a.proc_common_pkg.all;
@@ -154,19 +153,47 @@ architecture IMP of user_logic is
 begin
 
 ----------------------------------------------------------------------------------------------------
-    
+ -- DSP Implementations
+ 
     -- Map the low bits of the register to the enables signal
     dsp_enables <= slv_reg2_08h_DSPENA_RW(C_SLV_DWIDTH-NUM_DSPS to C_SLV_DWIDTH-1);
     
-    -- DSP Implementations
-    -- For now just shunt them all
+    --------------------------------------
+    -- DSP_0    Configurable gain
+    --      20h = Gain (L and R)
+    DSP_0_GAIN_L : entity audiofx_v1_00_a.dsp_gainstage
+        generic map (
+            XY_WIDTH => C_SAMPWIDTH,
+            A_WIDTH => 32,
+            A_FRACTIONAL_BITS => 16
+        )
+        port map (
+            x => dsp_sends_L(0),
+            y => dsp_returns_L(0),
+            a => slv_reg8_20h
+        );
+    DSP_0_GAIN_R : entity audiofx_v1_00_a.dsp_gainstage
+        generic map (
+            XY_WIDTH => C_SAMPWIDTH,
+            A_WIDTH => 32,
+            A_FRACTIONAL_BITS => 16
+        )
+        port map (
+            x => dsp_sends_R(0),
+            y => dsp_returns_R(0),
+            a => slv_reg8_20h
+        );    
     
-    -- DSP_0
-    dsp_returns_L(0) <= dsp_sends_L(0);
-    -- DSP_1
-    dsp_returns_L(1) <= dsp_sends_L(1);
+
+    --------------------------------------
+    -- DSP_1    -6 dB Gain
+    --dsp_returns_L(1) <= dsp_sends_L(1);
+    dsp_returns_L(1) <= std_logic_vector( shift_right( signed(dsp_sends_L(1)), 1) );
+    
+    --------------------------------------
     -- DSP_2
-    dsp_returns_L(2) <= dsp_sends_L(2);
+    --dsp_returns_L(2) <= dsp_sends_L(2);
+    dsp_returns_L(2) <= (others => '0');
 
 
     SWITCHER_L : entity audiofx_v1_00_a.dsp_switcher
@@ -296,7 +323,7 @@ begin
     begin
         if rising_edge(FSL_Clk) then
             if samp_ena_L = '1' then
-                slv_reg3_0Ch_TESTCTR_RO <= slv_reg3_0Ch_TESTCTR_RO + 1;
+                slv_reg3_0Ch_TESTCTR_RO <= std_logic_vector(signed(slv_reg3_0Ch_TESTCTR_RO) + 1);
             end if;
         end if; -- rising_edge(FSL_Clk)
     end process;
