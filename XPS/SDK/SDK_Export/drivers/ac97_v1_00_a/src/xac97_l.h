@@ -109,7 +109,7 @@
 
 // Enable read access
 #define XAC97_mConfReadAccess(Base, Reg_Addr) \
-		XAC97_mSetRegAddr((XIo_Address)((Base)+XAC97_REGADDR_OFFSET), ((Reg_Addr)|XAC97_CONTROL_REGADDR_READ))
+		XAC97_mSetRegAddr((Base), ((Reg_Addr)|XAC97_CONTROL_REGADDR_READ))
 
 // Performs a general write operation to specified address
 #define XAC97_mWrite(Base, Offset, Value) \
