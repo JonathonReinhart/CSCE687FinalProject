@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <!--This is an ISE project configuration file.-->
 <!--It holds project specific layout data for the projectmgr plugin.-->
 <!--Copyright (c) 1995-2009 Xilinx, Inc.  All rights reserved.-->
@@ -9,13 +9,13 @@
          <ClosedNodesVersion>2</ClosedNodesVersion>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem>gainstage - IMP (C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/SVN_3/XPS/pcores/audiofx_v1_00_a/hdl/vhdl/DSPs/gainstage.vhdl)</SelectedItem>
+         <SelectedItem>dsp_gainstage - IMP (C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/SVN_3/XPS/pcores/audiofx_v1_00_a/hdl/vhdl/dsp_gainstage.vhd)</SelectedItem>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
-      <ViewHeaderState orientation="horizontal" >000000ff000000000000000100000001000000000000000000000000000000000202000000010000000100000064000000ff000000020000000000000000000000000200000064ffffffff000000810000000300000002000000ff0000000100000003000000000000000100000003</ViewHeaderState>
+      <ViewHeaderState orientation="horizontal" >000000ff0000000000000001000000010000000000000000000000000000000002020000000100000001000000640000012c000000020000000000000000000000000200000064ffffffff0000008100000003000000020000012c0000000100000003000000000000000100000003</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >true</UserChangedColumnWidths>
-      <CurrentItem>gainstage - IMP (C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/SVN_3/XPS/pcores/audiofx_v1_00_a/hdl/vhdl/DSPs/gainstage.vhdl)</CurrentItem>
+      <CurrentItem>dsp_gainstage - IMP (C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/SVN_3/XPS/pcores/audiofx_v1_00_a/hdl/vhdl/dsp_gainstage.vhd)</CurrentItem>
    </ItemView>
    <ItemView engineview="SynthesisOnly" sourcetype="" guiview="Process" >
       <ClosedNodes>
@@ -38,7 +38,7 @@
       <SelectedItems/>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
-      <ViewHeaderState orientation="horizontal" >000000ff0000000000000001000000000000000001000000000000000000000000000000000000023b000000040101000100000000000000000000000064ffffffff000000810000000000000004000000cd0000000100000000000000240000000100000000000000660000000100000000000000e40000000100000000</ViewHeaderState>
+      <ViewHeaderState orientation="horizontal" >000000ff000000000000000100000000000000000100000000000000000000000000000000000003a3000000040101000100000000000000000000000064ffffffff000000810000000000000004000000cd00000001000000000000002400000001000000000000006600000001000000000000024c0000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
       <CurrentItem>clockgen.vhdl</CurrentItem>
    </ItemView>
@@ -63,13 +63,13 @@
          <ClosedNode>User Constraints</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem>Check Syntax</SelectedItem>
+         <SelectedItem></SelectedItem>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff0000000000000001000000010000000000000000000000000000000000000000000000022a000000010000000100000000000000000000000064ffffffff0000008100000000000000010000022a0000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem>Check Syntax</CurrentItem>
+      <CurrentItem></CurrentItem>
    </ItemView>
    <ItemView engineview="SynthesisOnly" sourcetype="DESUT_VHDL_PACKAGE_DECL" guiview="Process" >
       <ClosedNodes>
@@ -81,40 +81,41 @@
          <ClosedNode>User Constraints</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem/>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff0000000000000001000000010000000000000000000000000000000000000000000000023b000000010000000100000000000000000000000064ffffffff0000008100000000000000010000023b0000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem/>
    </ItemView>
    <ItemView engineview="SynthesisOnly" sourcetype="DESUT_VHDL_PACKAGE_BODY" guiview="Process" >
       <ClosedNodes>
          <ClosedNodesVersion>1</ClosedNodesVersion>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem/>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff0000000000000001000000010000000000000000000000000000000000000000000000023b000000010000000100000000000000000000000064ffffffff0000008100000000000000010000023b0000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem/>
    </ItemView>
    <ItemView engineview="BehavioralSim" guiview="Source" compilemode="AutoCompile" >
       <ClosedNodes>
          <ClosedNodesVersion>2</ClosedNodesVersion>
          <ClosedNode>/audiofx_TB - BEHAVIORAL C:|Users|Jonathon|Classwork|CSCE687|_FinalProject|XPS|SVN_3|XPS|pcores|audiofx_v1_00_a|hdl|vhdl|DSPs|ise|gainstage_TB.vhdl</ClosedNode>
+         <ClosedNode>/gainstage_TB - BEHAVIORAL C:|Users|Jonathon|Classwork|CSCE687|_FinalProject|XPS|SVN_3|XPS|pcores|audiofx_v1_00_a|hdl|vhdl|DSPs|ise|vhdl|gainstage_TB.vhdl</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem>gainstage_TB - BEHAVIORAL (C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/SVN_3/XPS/pcores/audiofx_v1_00_a/hdl/vhdl/DSPs/ise/vhdl/gainstage_TB.vhdl)</SelectedItem>
+         <SelectedItem>rollavg_TB - BEHAVIORAL (C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/SVN_3/XPS/pcores/audiofx_v1_00_a/hdl/vhdl/DSPs/ise/vhdl/rollavg_TB.vhdl)</SelectedItem>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000020200000001000000010000006400000173000000020000000000000000000000000200000064ffffffff000000810000000300000002000001730000000100000003000000000000000100000003</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem>gainstage_TB - BEHAVIORAL (C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/SVN_3/XPS/pcores/audiofx_v1_00_a/hdl/vhdl/DSPs/ise/vhdl/gainstage_TB.vhdl)</CurrentItem>
+      <CurrentItem>rollavg_TB - BEHAVIORAL (C:/Users/Jonathon/Classwork/CSCE687/_FinalProject/XPS/SVN_3/XPS/pcores/audiofx_v1_00_a/hdl/vhdl/DSPs/ise/vhdl/rollavg_TB.vhdl)</CurrentItem>
    </ItemView>
    <ItemView engineview="BehavioralSim" sourcetype="" guiview="Process" >
       <ClosedNodes>
@@ -136,13 +137,13 @@
          <ClosedNodesVersion>1</ClosedNodesVersion>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem>Behavioral Check Syntax</SelectedItem>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff0000000000000001000000010000000000000000000000000000000000000000000000023b000000010000000100000000000000000000000064ffffffff0000008100000000000000010000023b0000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem>Behavioral Check Syntax</CurrentItem>
    </ItemView>
    <SourceProcessView>000000ff00000000000000020000011b0000011b01000000050100000002</SourceProcessView>
    <CurrentView>Behavioral Simulation</CurrentView>
