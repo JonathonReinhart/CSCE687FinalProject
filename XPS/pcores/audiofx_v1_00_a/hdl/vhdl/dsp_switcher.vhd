@@ -19,7 +19,7 @@ end package;
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.dsp_types_pkg.all;
+use audiofx_v1_00_a.dsp_types_pkg.all;
 
 entity dsp_switcher is
     generic (

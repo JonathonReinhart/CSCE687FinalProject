@@ -8,7 +8,7 @@ use proc_common_v3_00_a.proc_common_pkg.all;
 
 library audiofx_v1_00_a;
 use audiofx_v1_00_a.all;
-
+use audiofx_v1_00_a.dsp_types_pkg.all;
 
 --USER libraries added here
 
@@ -141,15 +141,54 @@ architecture IMP of user_logic is
     
     --signal samp_clk_l, samp_clk_r : std_logic;
     
-    signal sample_l, sample_r : std_logic_vector(C_SAMPWIDTH-1 downto 0);
-    signal samp_ena_l, samp_ena_r : std_logic;      -- clock enables for DSP logic
+    constant NUM_DSPS : positive := 3;
     
-    signal result_l, result_r, result_muxed : std_logic_vector(C_SAMPWIDTH-1 downto 0);
+    signal sample_L, sample_R : std_logic_vector(C_SAMPWIDTH-1 downto 0);
+    signal samp_ena_L, samp_ena_R : std_logic;      -- clock enables for DSP logic
+    
+    signal result_L, result_R, result_muxed : std_logic_vector(C_SAMPWIDTH-1 downto 0);
 
+    signal dsp_enables                      : std_logic_vector(NUM_DSPS-1 downto 0);
+    signal dsp_sends_L, dsp_sends_R         : slv16_array(0 to NUM_DSPS-1);
+    signal dsp_returns_L, dsp_returns_R     : slv16_array(0 to NUM_DSPS-1);
 begin
 
+----------------------------------------------------------------------------------------------------
+    
+    -- Map the low bits of the register to the enables signal
+    dsp_enables <= slv_reg2_08h_DSPENA_RW(C_SLV_DWIDTH-NUM_DSPS to C_SLV_DWIDTH-1);
+    
+    -- DSP Implementations
+    -- For now just shunt them all
+    
+    -- DSP_0
+    dsp_returns_L(0) <= dsp_sends_L(0);
+    -- DSP_1
+    dsp_returns_L(1) <= dsp_sends_L(1);
+    -- DSP_2
+    dsp_returns_L(2) <= dsp_sends_L(2);
 
-----------------------------------------------------------------------------------------------------   
+
+    SWITCHER_L : entity audiofx_v1_00_a.dsp_switcher
+        generic map (
+            NUM_DSPS => NUM_DSPS
+        )
+        port map (
+            sys_clk => FSL_Clk,
+            samp_ena => samp_ena_L,
+            reset => FSL_Rst,
+            samp_in => sample_L,
+            samp_out => result_L,
+            
+            dsp_enables => dsp_enables,
+            dsp_sends => dsp_sends_L,
+            dsp_returns => dsp_returns_L
+        );
+        
+    -- Leave the right channel Dry for now
+    result_R <= sample_R;
+
+----------------------------------------------------------------------------------------------------
 --- BEGIN   FSL bus transaction implementation
 
     FSL_PROCESS : process (FSL_Clk) is
@@ -157,10 +196,10 @@ begin
         if rising_edge(FSL_Clk) then
             if FSL_Rst = '1' then
                 fsl_state <= FSL_IDLE;
-                sample_l <= (others => '0');
-                sample_r <= (others => '0');
-                samp_ena_l <= '0';
-                samp_ena_r <= '0';
+                sample_L <= (others => '0');
+                sample_R <= (others => '0');
+                samp_ena_L <= '0';
+                samp_ena_R <= '0';
                 
             else    -- not reset
                 case fsl_state is
@@ -168,22 +207,22 @@ begin
                     when FSL_IDLE =>
                         if (FSL_S_Exists = '1') then
                             fsl_state <= FSL_SREAD_L;
-                            samp_ena_l <= '0';
-                            samp_ena_r <= '0';
+                            samp_ena_L <= '0';
+                            samp_ena_R <= '0';
                         end if;
                         
                     -- Read the Left channel
                     when FSL_SREAD_L =>   
                         if (FSL_S_Exists = '1') then
-                            sample_l <= FSL_S_Data(C_FSL_DWIDTH - 16 to C_FSL_DWIDTH - 1);
-                            samp_ena_l <= '1';
+                            sample_L <= FSL_S_Data(C_FSL_DWIDTH - 16 to C_FSL_DWIDTH - 1);
+                            samp_ena_L <= '1';
                             fsl_state <= FSL_SREAD_R;
                         end if;
                     -- Read the Right channel
                     when FSL_SREAD_R =>   
                         if (FSL_S_Exists = '1') then
-                            sample_r <= FSL_S_Data(C_FSL_DWIDTH - 16 to C_FSL_DWIDTH - 1);
-                            samp_ena_r <= '1';
+                            sample_R <= FSL_S_Data(C_FSL_DWIDTH - 16 to C_FSL_DWIDTH - 1);
+                            samp_ena_R <= '1';
                             fsl_state <= FSL_MWRITE_L;
                         end if;
                         
@@ -201,11 +240,11 @@ begin
                 end case;
                 
                 -- Make sure the "sample present" clock enables are only active for one clock cycle.
-                if (samp_ena_l = '1') then
-                    samp_ena_l <= '0';
+                if (samp_ena_L = '1') then
+                    samp_ena_L <= '0';
                 end if;
-                if (samp_ena_r = '1') then
-                    samp_ena_r <= '0';
+                if (samp_ena_R = '1') then
+                    samp_ena_R <= '0';
                 end if;
                 
             end if;
@@ -219,17 +258,10 @@ begin
     FSL_M_Write <= not FSL_M_Full when (fsl_state = FSL_MWRITE_L) or (fsl_state = FSL_MWRITE_R)  else '0';
 
     -- Interleave the outgoing data.
-    result_muxed <= result_l when (fsl_state = FSL_MWRITE_L) else
-                    result_r when (fsl_state = FSL_MWRITE_R) else
+    result_muxed <= result_L when (fsl_state = FSL_MWRITE_L) else
+                    result_R when (fsl_state = FSL_MWRITE_R) else
                     (others => '0');
     FSL_M_Data <= (0 to C_FSL_DWIDTH-result_muxed'length-1 => '0') & result_muxed;
-    
-    
-    -- TEMP:
-    -- Just write the samples back out - in the opposite channel for test!
-    result_l <= sample_r;   --sample_l;
-    result_r <= sample_l;   --sample_r;
-    
     
     
     -- See if we're getting any signal
@@ -240,9 +272,9 @@ begin
     )
     port map (
         clk => FSL_Clk,
-        samp_ena => samp_ena_l,
+        samp_ena => samp_ena_L,
         reset => FSL_Rst,
-        x => sample_l,
+        x => sample_L,
         y => slv_reg4_10h(16 to 31)
     );
     
@@ -253,9 +285,9 @@ begin
     )
     port map (
         clk => FSL_Clk,
-        samp_ena => samp_ena_r,
+        samp_ena => samp_ena_R,
         reset => FSL_Rst,
-        x => sample_r,
+        x => sample_R,
         y => slv_reg5_14h(16 to 31)
     );
     
@@ -263,7 +295,7 @@ begin
     COUNT_SAMPLES : process (FSL_Clk) is
     begin
         if rising_edge(FSL_Clk) then
-            if samp_ena_l = '1' then
+            if samp_ena_L = '1' then
                 slv_reg3_0Ch_TESTCTR_RO <= slv_reg3_0Ch_TESTCTR_RO + 1;
             end if;
         end if; -- rising_edge(FSL_Clk)
