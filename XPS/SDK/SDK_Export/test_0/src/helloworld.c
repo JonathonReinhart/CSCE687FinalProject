@@ -234,58 +234,42 @@ void set_gain(uint gain) {
 	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x20, regval);
 }
 
+typedef struct {
+	int	thresh;
+	int gain;
+} distval_t;
+
+distval_t m_dist_table[] = {
+	{ 0x7FFF,	0x00010000 },
+	{ 8000,	0x00018000 },
+	{ 6000, 0x00020000 },
+	{ 4000, 0x00028000 },
+	{ 2600, 0x00038000 },
+	{ 1800, 0x00048000 },
+	{ 1000, 0x00050000 },
+	{ 800, 	0x00070000 },
+	{ 600, 	0x00090000 },
+	{ 300,  0x000E0000 },
+	{ 160,  0x00180000 },
+	{ 100, 	0x00200000 },
+	{ 60, 	0x00380000 },
+	{ 40, 	0x00480000 },
+	{ 24, 	0x00600000 },
+};
+
+#define MIN_DIST_VAL	0
+#define MAX_DIST_VAL	((sizeof(m_dist_table)/sizeof(m_dist_table[0]))-1)
+
 
 void set_distortion(int dist) {
 	int thresh;
 	int gain;
 
-	switch (dist) {
-	default:
-	case 0:
-		thresh = (1<<15)-1;
-		gain = 0x00010000;		// 1.0
-		break;
-	case 1:
-		thresh = 8000;
-		gain = 0x00018000;		// 1.5
-		break;
-	case 2:
-		thresh = 4000;
-		gain = 0x00028000;
-		break;
-	case 3:
-		thresh = 1000;
-		gain = 0x00050000;
-		break;
-	case 4:
-		thresh = 800;
-		gain = 0x00070000;
-		break;
-	case 5:
-		thresh = 600;
-		gain = 0x000A0000;
-		break;
-	case 6:
-		thresh = 300;
-		gain = 0x000E0000;
-		break;
-	case 7:
-		thresh = 160;
-		gain = 0x00180000;		//
-		break;
-	case 8:
-		thresh = 100;
-		gain = 0x00200000;		//
-		break;
-	case 9:
-		thresh = 60;
-		gain = 0x00380000;		//
-		break;
-	case 10:
-		thresh = 40;
-		gain = 0x00480000;		//
-		break;
-	}
+	if (dist < MIN_DIST_VAL)	dist = MIN_DIST_VAL;
+	if (dist > MAX_DIST_VAL)	dist = MAX_DIST_VAL;
+
+	thresh 	= m_dist_table[dist].thresh;
+	gain 	= m_dist_table[dist].gain;
 
 	xil_printf("Dist = %d   -> DTHRESH (24h) = %d,  DGAIN (28h) = 0x%08X\r\n", dist, thresh, gain);
 
@@ -372,13 +356,13 @@ int main(void)
 
     		// Left/right = distortion
     		if (new_pb & PB5_E) {		// Right pressed?
-    			if (distval < 10) {
+    			if (distval < MAX_DIST_VAL) {
     				distval++;
     				set_distortion(distval);
 				}
 			}
 			else if (new_pb & PB5_W) {	// Left pressed?
-				if (distval > 0) {
+				if (distval > MIN_DIST_VAL) {
 					distval--;
 					set_distortion(distval);
 				}
