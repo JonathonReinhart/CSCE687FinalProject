@@ -10,6 +10,7 @@ lib plbv46_slave_single_v1_01_a  all
 lib audiofx_v1_00_a rollavg         vhdl
 lib audiofx_v1_00_a dsp_switcher    vhdl
 lib audiofx_v1_00_a dsp_gainstage   vhdl
+lib audiofx_v1_00_a dsp_distort     vhdl
 
 lib audiofx_v1_00_a user_logic      vhdl
 lib audiofx_v1_00_a audiofx         vhdl

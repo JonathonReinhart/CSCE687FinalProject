@@ -116,9 +116,9 @@ architecture IMP of user_logic is
   signal slv_reg5_14h                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg6_18h                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg7_1Ch                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg8_20h                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg9_24h                   : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg10_28h                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg8_20h_DSP0_PREGAIN      : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg9_24h_DSP1_DTHRESH      : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg10_28h_DGAIN            : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg11_2Ch                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg12_30h                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg13_34h                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
@@ -150,6 +150,8 @@ architecture IMP of user_logic is
     signal dsp_enables                      : std_logic_vector(NUM_DSPS-1 downto 0);
     signal dsp_sends_L, dsp_sends_R         : slv16_array(0 to NUM_DSPS-1);
     signal dsp_returns_L, dsp_returns_R     : slv16_array(0 to NUM_DSPS-1);
+    
+    signal dsp1_dist_pregain_L, dsp1_dist_pregain_R : std_logic_vector(C_SAMPWIDTH-1 downto 0);
 begin
 
 ----------------------------------------------------------------------------------------------------
@@ -205,7 +207,7 @@ begin
         port map (
             x => dsp_sends_L(0),
             y => dsp_returns_L(0),
-            a => slv_reg8_20h
+            a => slv_reg8_20h_DSP0_PREGAIN
         );
     DSP_0_GAIN_R : entity audiofx_v1_00_a.dsp_gainstage
         generic map (
@@ -216,14 +218,54 @@ begin
         port map (
             x => dsp_sends_R(0),
             y => dsp_returns_R(0),
-            a => slv_reg8_20h
+            a => slv_reg8_20h_DSP0_PREGAIN
         );    
     
 
     --------------------------------------
-    -- DSP_1    -6 dB Gain
-    dsp_returns_L(1) <= std_logic_vector( shift_right( signed(dsp_sends_L(1)), 1) );
-    dsp_returns_R(1) <= std_logic_vector( shift_right( signed(dsp_sends_R(1)), 1) );
+    -- DSP_1    Distorition
+    --      24h  DTHRESH   Threshold (16-bit)
+    --      28h  DGAIN     Post-Gain (32-bit, fixed16)
+    DSP_1_DISTORT_L : entity audiofx_v1_00_a.dsp_distort
+        port map (
+            sys_clk => FSL_Clk,
+            samp_ena => samp_ena_L,
+            x_in => dsp_sends_L(1),
+            y_out => dsp1_dist_pregain_L, --dsp_returns_L(1),
+            thresh => slv_reg9_24h_DSP1_DTHRESH(C_SLV_DWIDTH-16 to C_SLV_DWIDTH-1)
+        );
+    DSP_1_DISTORT_R : entity audiofx_v1_00_a.dsp_distort
+        port map (
+            sys_clk => FSL_Clk,
+            samp_ena => samp_ena_R,
+            x_in => dsp_sends_R(1),
+            y_out => dsp1_dist_pregain_R, --dsp_returns_R(1),
+            thresh => slv_reg9_24h_DSP1_DTHRESH(C_SLV_DWIDTH-16 to C_SLV_DWIDTH-1)
+        );
+        
+    DSP_1_POSTDIST_GAIN_L : entity audiofx_v1_00_a.dsp_gainstage
+        generic map (
+            XY_WIDTH => C_SAMPWIDTH,
+            A_WIDTH => 32,
+            A_FRACTIONAL_BITS => 16
+        )
+        port map (
+            x => dsp1_dist_pregain_L,
+            y => dsp_returns_L(1),
+            a => slv_reg10_28h_DGAIN
+        );
+    DSP_1_POSTDIST_GAIN_R : entity audiofx_v1_00_a.dsp_gainstage
+        generic map (
+            XY_WIDTH => C_SAMPWIDTH,
+            A_WIDTH => 32,
+            A_FRACTIONAL_BITS => 16
+        )
+        port map (
+            x => dsp1_dist_pregain_R,
+            y => dsp_returns_R(1),
+            a => slv_reg10_28h_DGAIN
+        );    
+    
     
     --------------------------------------
     -- DSP_2    Silence
@@ -394,9 +436,9 @@ begin
         --slv_reg5_14h <= (others => '0');
         slv_reg6_18h <= (others => '0');
         slv_reg7_1Ch <= (others => '0');
-        slv_reg8_20h <= (others => '0');
-        slv_reg9_24h <= (others => '0');
-        slv_reg10_28h <= (others => '0');
+        slv_reg8_20h_DSP0_PREGAIN <= (others => '0');
+        slv_reg9_24h_DSP1_DTHRESH <= (others => '0');
+        slv_reg10_28h_DGAIN <= (others => '0');
         slv_reg11_2Ch <= (others => '0');
         slv_reg12_30h <= (others => '0');
         slv_reg13_34h <= (others => '0');
@@ -455,19 +497,19 @@ begin
           when "0000000010000000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg8_20h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg8_20h_DSP0_PREGAIN(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000001000000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg9_24h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg9_24h_DSP1_DTHRESH(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000000100000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg10_28h(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg10_28h_DGAIN(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000000010000" =>
@@ -508,7 +550,7 @@ begin
   end process SLAVE_REG_WRITE_PROC;
 
   -- implement slave model software accessible register(s) read mux
-  SLAVE_REG_READ_PROC : process( slv_reg_read_sel, slv_reg0_00h_CTRL_RW, slv_reg1_04h_STATUS_RO, slv_reg2_08h_DSPENA_RW, slv_reg3_0Ch_TESTCTR_RO, slv_reg4_10h, slv_reg5_14h, slv_reg6_18h, slv_reg7_1Ch, slv_reg8_20h, slv_reg9_24h, slv_reg10_28h, slv_reg11_2Ch, slv_reg12_30h, slv_reg13_34h, slv_reg14_38h, slv_reg15_3Ch ) is
+  SLAVE_REG_READ_PROC : process( slv_reg_read_sel, slv_reg0_00h_CTRL_RW, slv_reg1_04h_STATUS_RO, slv_reg2_08h_DSPENA_RW, slv_reg3_0Ch_TESTCTR_RO, slv_reg4_10h, slv_reg5_14h, slv_reg6_18h, slv_reg7_1Ch, slv_reg8_20h_DSP0_PREGAIN, slv_reg9_24h_DSP1_DTHRESH, slv_reg10_28h_DGAIN, slv_reg11_2Ch, slv_reg12_30h, slv_reg13_34h, slv_reg14_38h, slv_reg15_3Ch ) is
   begin
 
     case slv_reg_read_sel is
@@ -520,9 +562,9 @@ begin
       when "0000010000000000" => slv_ip2bus_data <= slv_reg5_14h;
       when "0000001000000000" => slv_ip2bus_data <= slv_reg6_18h;
       when "0000000100000000" => slv_ip2bus_data <= slv_reg7_1Ch;
-      when "0000000010000000" => slv_ip2bus_data <= slv_reg8_20h;
-      when "0000000001000000" => slv_ip2bus_data <= slv_reg9_24h;
-      when "0000000000100000" => slv_ip2bus_data <= slv_reg10_28h;
+      when "0000000010000000" => slv_ip2bus_data <= slv_reg8_20h_DSP0_PREGAIN;
+      when "0000000001000000" => slv_ip2bus_data <= slv_reg9_24h_DSP1_DTHRESH;
+      when "0000000000100000" => slv_ip2bus_data <= slv_reg10_28h_DGAIN;
       when "0000000000010000" => slv_ip2bus_data <= slv_reg11_2Ch;
       when "0000000000001000" => slv_ip2bus_data <= slv_reg12_30h;
       when "0000000000000100" => slv_ip2bus_data <= slv_reg13_34h;
