@@ -16,19 +16,7 @@ entity dsp_flanger is
 end dsp_flanger;
 
 architecture IMP of dsp_flanger is
-    --components
-    component delay_reg 
-        generic (
-            width : positive := 16
-        );
-        port (
-            sys_clk         : in  std_logic;
-            samp_ena        : in  std_logic;
-            x_in            : in  std_logic_vector((width-1) downto 0);
-            y_out           : out std_logic_vector((width-1) downto 0)
-        );
-    end component;
-  
+    --components  
     component counter is
         port (
             sys_clk         : in  std_logic;
@@ -49,25 +37,20 @@ architecture IMP of dsp_flanger is
     signal f_sel            : std_logic_vector(31 downto 0);
     
 begin
-  
-    REG0 : delay_reg
-        port map(
-            sys_clk => sys_clk,
-            samp_ena => samp_ena,
-            x_in => x_in,
-            y_out => delay_queue(0)
-        );
-      
-    reg_gen : for i in 1 to MAX_REG generate
+
+    delay_queue(0) <= x_in;
+
+    -- Synchronous delay cycles.
+    DELAYS : process(sys_clk)
     begin
-        REGX : delay_reg
-            port map(
-                sys_clk => sys_clk,
-                samp_ena => samp_ena,
-                x_in => delay_queue(i-1),
-                y_out => delay_queue(i)
-            );
-    end generate reg_gen;
+        if rising_edge(sys_clk) then
+            if samp_ena = '1' then
+                -- Shift delay_queue by one sample.
+                -- http://stackoverflow.com/questions/18247955
+                delay_queue(1 to delay_queue'high) <= delay_queue(0 to delay_queue'high-1);
+            end if;
+        end if;
+    end process;
 
     count : counter
         port map(
