@@ -119,7 +119,7 @@ architecture IMP of user_logic is
   signal slv_reg8_20h_DSP0_PREGAIN      : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg9_24h_DSP1_DTHRESH      : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg10_28h_DGAIN            : std_logic_vector(0 to C_SLV_DWIDTH-1);
-  signal slv_reg11_2Ch                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
+  signal slv_reg11_2Ch_FLRATE           : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg12_30h                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg13_34h                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
   signal slv_reg14_38h                  : std_logic_vector(0 to C_SLV_DWIDTH-1);
@@ -140,7 +140,7 @@ architecture IMP of user_logic is
     
     --signal samp_clk_l, samp_clk_r : std_logic;
     
-    constant NUM_DSPS : positive := 3;
+    constant NUM_DSPS : positive := 4;
     
     signal sample_L, sample_R : std_logic_vector(C_SAMPWIDTH-1 downto 0);
     signal samp_ena_L, samp_ena_R : std_logic;      -- clock enables for DSP logic
@@ -268,10 +268,29 @@ begin
     
     
     --------------------------------------
-    -- DSP_2    Silence
-    dsp_returns_L(2) <= (others => '0');
-    dsp_returns_R(2) <= (others => '0');
-
+    -- DSP_2    (Unused)
+    dsp_returns_L(2) <= dsp_sends_L(2);
+    dsp_returns_R(2) <= dsp_sends_R(2);
+    
+    
+    --------------------------------------
+    -- DSP_3    Flanger
+    DSP_3_FLANGER_L : entity audiofx_v1_00_a.dsp_flanger
+        port map (
+            sys_clk => FSL_Clk,
+            samp_ena => samp_ena_L,
+            x_in => dsp_sends_L(3),
+            y_out => dsp_returns_L(3),
+            rate => slv_reg11_2Ch_FLRATE(C_SLV_DWIDTH-16 to C_SLV_DWIDTH-1)
+        );
+    DSP_3_FLANGER_R : entity audiofx_v1_00_a.dsp_flanger
+        port map (
+            sys_clk => FSL_Clk,
+            samp_ena => samp_ena_R,
+            x_in => dsp_sends_R(3),
+            y_out => dsp_returns_R(3),
+            rate => slv_reg11_2Ch_FLRATE(C_SLV_DWIDTH-16 to C_SLV_DWIDTH-1)
+        );
         
 
 ----------------------------------------------------------------------------------------------------
@@ -439,7 +458,7 @@ begin
         slv_reg8_20h_DSP0_PREGAIN <= (others => '0');
         slv_reg9_24h_DSP1_DTHRESH <= (others => '0');
         slv_reg10_28h_DGAIN <= (others => '0');
-        slv_reg11_2Ch <= (others => '0');
+        slv_reg11_2Ch_FLRATE <= (others => '0');
         slv_reg12_30h <= (others => '0');
         slv_reg13_34h <= (others => '0');
         slv_reg14_38h <= (others => '0');
@@ -515,7 +534,7 @@ begin
           when "0000000000010000" =>
             for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
               if ( Bus2IP_BE(byte_index) = '1' ) then
-                slv_reg11_2Ch(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
+                slv_reg11_2Ch_FLRATE(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
               end if;
             end loop;
           when "0000000000001000" =>
@@ -550,7 +569,7 @@ begin
   end process SLAVE_REG_WRITE_PROC;
 
   -- implement slave model software accessible register(s) read mux
-  SLAVE_REG_READ_PROC : process( slv_reg_read_sel, slv_reg0_00h_CTRL_RW, slv_reg1_04h_STATUS_RO, slv_reg2_08h_DSPENA_RW, slv_reg3_0Ch_TESTCTR_RO, slv_reg4_10h, slv_reg5_14h, slv_reg6_18h, slv_reg7_1Ch, slv_reg8_20h_DSP0_PREGAIN, slv_reg9_24h_DSP1_DTHRESH, slv_reg10_28h_DGAIN, slv_reg11_2Ch, slv_reg12_30h, slv_reg13_34h, slv_reg14_38h, slv_reg15_3Ch ) is
+  SLAVE_REG_READ_PROC : process( slv_reg_read_sel, slv_reg0_00h_CTRL_RW, slv_reg1_04h_STATUS_RO, slv_reg2_08h_DSPENA_RW, slv_reg3_0Ch_TESTCTR_RO, slv_reg4_10h, slv_reg5_14h, slv_reg6_18h, slv_reg7_1Ch, slv_reg8_20h_DSP0_PREGAIN, slv_reg9_24h_DSP1_DTHRESH, slv_reg10_28h_DGAIN, slv_reg11_2Ch_FLRATE, slv_reg12_30h, slv_reg13_34h, slv_reg14_38h, slv_reg15_3Ch ) is
   begin
 
     case slv_reg_read_sel is
@@ -565,7 +584,7 @@ begin
       when "0000000010000000" => slv_ip2bus_data <= slv_reg8_20h_DSP0_PREGAIN;
       when "0000000001000000" => slv_ip2bus_data <= slv_reg9_24h_DSP1_DTHRESH;
       when "0000000000100000" => slv_ip2bus_data <= slv_reg10_28h_DGAIN;
-      when "0000000000010000" => slv_ip2bus_data <= slv_reg11_2Ch;
+      when "0000000000010000" => slv_ip2bus_data <= slv_reg11_2Ch_FLRATE;
       when "0000000000001000" => slv_ip2bus_data <= slv_reg12_30h;
       when "0000000000000100" => slv_ip2bus_data <= slv_reg13_34h;
       when "0000000000000010" => slv_ip2bus_data <= slv_reg14_38h;
