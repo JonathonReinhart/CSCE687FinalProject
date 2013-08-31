@@ -251,7 +251,10 @@ int main(void)
 	//list_regs();
 	//while (1) {}
 
-	set_gain(8);
+	set_gain(1*8);
+
+	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x24, 2000);	// Distortion threshold
+	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x28, 0x00040000);	// Distortion gain (fixed 32-16)
 
 
 	print("Entering main loop...\r\n");
