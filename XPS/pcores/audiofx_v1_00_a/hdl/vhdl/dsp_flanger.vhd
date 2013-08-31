@@ -9,7 +9,6 @@ entity dsp_flanger is
     port (
         sys_clk         : in  std_logic;
         samp_ena        : in  std_logic;
-        reset           : in  std_logic;
         rate            : in  std_logic_vector(15 downto 0);
         x_in            : in  std_logic_vector(15 downto 0);
         y_out           : out std_logic_vector(15 downto 0)
