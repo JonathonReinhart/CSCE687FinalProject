@@ -229,9 +229,68 @@ void set_gain(uint gain) {
 
 	regval = gain << (16-3);
 
-	xil_printf("Setting gain to %d -> Programming gain reg (20h) to 0x%08X\r\n", gain, regval);
+	xil_printf("Gain = %d   -> PREGAIN (20h) = 0x%08X\r\n", gain, regval);
 
 	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x20, regval);
+}
+
+
+void set_distortion(int dist) {
+	int thresh;
+	int gain;
+
+	switch (dist) {
+	default:
+	case 0:
+		thresh = (1<<15)-1;
+		gain = 0x00010000;		// 1.0
+		break;
+	case 1:
+		thresh = 8000;
+		gain = 0x00018000;		// 1.5
+		break;
+	case 2:
+		thresh = 4000;
+		gain = 0x00028000;
+		break;
+	case 3:
+		thresh = 1000;
+		gain = 0x00050000;
+		break;
+	case 4:
+		thresh = 800;
+		gain = 0x00070000;
+		break;
+	case 5:
+		thresh = 600;
+		gain = 0x000A0000;
+		break;
+	case 6:
+		thresh = 300;
+		gain = 0x000E0000;
+		break;
+	case 7:
+		thresh = 160;
+		gain = 0x00180000;		//
+		break;
+	case 8:
+		thresh = 100;
+		gain = 0x00200000;		//
+		break;
+	case 9:
+		thresh = 60;
+		gain = 0x00380000;		//
+		break;
+	case 10:
+		thresh = 40;
+		gain = 0x00480000;		//
+		break;
+	}
+
+	xil_printf("Dist = %d   -> DTHRESH (24h) = %d,  DGAIN (28h) = 0x%08X\r\n", dist, thresh, gain);
+
+	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x24, thresh);	// Distortion threshold
+	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x28, gain);	// Distortion gain (fixed 32-16)
 }
 
 
@@ -241,7 +300,8 @@ int main(void)
 	u8 cur_pb=0, new_pb=0;
 	u32 temp;
 
-	uint gainval = 8;
+	uint gainval = 1*8;
+	uint distval = 0;
 
 	print("Microblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
 	init_interrupts();
@@ -251,10 +311,9 @@ int main(void)
 	//list_regs();
 	//while (1) {}
 
-	set_gain(1*8);
+	set_gain(gainval);
+	set_distortion(distval);
 
-	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x24, 2000);	// Distortion threshold
-	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x28, 0x00040000);	// Distortion gain (fixed 32-16)
 
 
 	print("Entering main loop...\r\n");
@@ -297,7 +356,7 @@ int main(void)
     		cur_pb = new_pb;
     		//xil_printf("New Pushbuttons value: 0x%X\r\n", new_pb);
 
-
+    		// Up/down = volume
     		if (new_pb & PB5_N) {		// Up pressed?
     			if (gainval < 40) {
     				gainval++;
@@ -310,6 +369,22 @@ int main(void)
     				set_gain(gainval);
     			}
     		}
+
+    		// Left/right = distortion
+    		if (new_pb & PB5_E) {		// Right pressed?
+    			if (distval < 10) {
+    				distval++;
+    				set_distortion(distval);
+				}
+			}
+			else if (new_pb & PB5_W) {	// Left pressed?
+				if (distval > 0) {
+					distval--;
+					set_distortion(distval);
+				}
+			}
+
+
 
     	}
     }
