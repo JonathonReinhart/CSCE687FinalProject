@@ -1,24 +1,10 @@
-/*
- * Copyright (c) 2009 Xilinx, Inc.  All rights reserved.
- *
- * Xilinx, Inc.
- * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A
- * COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
- * ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR
- * STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
- * IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE
- * FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.
- * XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO
- * THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO
- * ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE
- * FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- */
+// Configurable options
 
-/*
- * helloworld.c: simple test application
- */
+// Uncomment this to allow the LINE_IN signal to flow directly to LINE_OUT (no DSP).
+//#define ANALOG_BYPASS
+
+
+// End configurable options
 
 #include <stdio.h>
 #include <xparameters.h>
@@ -30,8 +16,9 @@
 #include <audiofx.h>
 #include <xgpio.h>
 
-#define FUNC_ENTER()	xil_printf(" %s()\r\n", __FUNCTION__)
+/*** Macros, project-specific definitions ***/
 
+#define FUNC_ENTER()	xil_printf(" %s()\r\n", __FUNCTION__)
 
 #define PB5_N	0x01	// North
 #define PB5_E	0x02	// East
@@ -40,11 +27,19 @@
 #define PB5_C	0x10	// Center
 
 
+/*** Data ***/
+
 static XGpio m_gpioDIP8;
 static XGpio m_gpioLEDs8;
 static XGpio m_gpioPBs5;
 
-static volatile int one_second_flag = 0;
+static volatile int mv_one_sec_flag = 0;
+
+static uint m_pregainval;
+static uint m_distval;
+
+
+/*** Function definitions ***/
 
 
 void timer_int_handler(void* _unused) {
@@ -55,18 +50,15 @@ void timer_int_handler(void* _unused) {
 
 	/* If the interrupt occurred, then increment a counter and set one_second_flag */
 	if (tcsr0 & XTC_CSR_INT_OCCURED_MASK) {
-		one_second_flag = 1;
+		mv_one_sec_flag = 1;
 
 		/* Clear the timer interrupt */
 		XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0, tcsr0);
 	}
-
 }
-
 
 void init_interrupts(void) {
 	FUNC_ENTER();
-
 
 	////////////////////////////////////
 	// Initialize interrupt controller
@@ -128,8 +120,6 @@ void set_output_volume(int vol) {
 }
 
 
-//#define ANALOG_BYPASS
-
 void do_ac97_init(void) {
 	FUNC_ENTER();
 
@@ -150,23 +140,17 @@ void do_ac97_init(void) {
 	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_MIC_VOLUME_REG, XAC97_IN_MUTE);
 
 #ifdef ANALOG_BYPASS
-	// Set the Line In gain to 0dB.
+	// Listen to the LINE IN via the analog mixer.
 	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_LINE_IN_VOLUME_REG, XAC97_IN_GAIN_0dB);		// LINE IN = 0dB
 	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_PCM_OUT_VOLUME_REG, XAC97_IN_MUTE);			// PCM OUT = Mute
 #else
+	// Listen to the PCM OUT (digital audio playback).
 	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_LINE_IN_VOLUME_REG, XAC97_IN_MUTE);			// LINE IN = Mute
 	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_PCM_OUT_VOLUME_REG, XAC97_IN_GAIN_0dB);		// PCM OUT = 0dB
 #endif
 
-
-
-
-
-
 	// Set the Master volume to 0dB.
 	set_output_volume(24);
-
-
 
 	print("Calling playback_enable\r\n");
 	playback_enable();
@@ -175,32 +159,8 @@ void do_ac97_init(void) {
 	record_enable();
 }
 
-void do_gpio_init(void) {
-	FUNC_ENTER();
-	// direction: Bits set to 0 are output and bits set to 1 are input.
-
-    XGpio_Initialize(&m_gpioDIP8, XPAR_DIP_SWITCHES_8BIT_DEVICE_ID);
-    XGpio_SetDataDirection(&m_gpioDIP8, 1, 0xFFFFFFFF);	// dip switches are inputs
-
-    XGpio_Initialize(&m_gpioPBs5, XPAR_PUSH_BUTTONS_5BIT_DEVICE_ID);
-	XGpio_SetDataDirection(&m_gpioPBs5, 1, 0xFFFFFFFF);	// push buttons are inputs
-
-    XGpio_Initialize(&m_gpioLEDs8, XPAR_LEDS_8BIT_DEVICE_ID);
-    XGpio_SetDataDirection(&m_gpioLEDs8, 1, 0x00000000);	// LEDs are outputs
-
-
-}
-
-inline u8 read_DIP8(void) {
-	return XGpio_DiscreteRead(&m_gpioDIP8, 1) & 0xFF;
-}
-
-inline u8 read_PB5(void) {
-	return XGpio_DiscreteRead(&m_gpioPBs5, 1) & 0xFF;
-}
-
 /*
-void list_regs(void) {
+void list_ac97_regs(void) {
 	int i;
 	u16 val;
 
@@ -215,165 +175,140 @@ void list_regs(void) {
 }
 */
 
-// gain 	A number in 1/8ths. For example:
-// gain		multiplier
-//	0		0.0  	(-inf dB)
-//  4		0.5  	(-6 dB)
-//  8       1.0  	(0 dB)
-//  12		1.5  	(3.5 dB)
-//  16		2.0		(6 dB)
-void set_gain(uint gain) {
-	u32 regval;
-	// The 32-bit gain register is fixed-point, with 16 integer, 16 fractional bits.
-	//XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x20, 0x00010000);	// 1.0
+void do_gpio_init(void) {
+	FUNC_ENTER();
+	// direction: Bits set to 0 are output and bits set to 1 are input.
 
-	regval = gain << (16-3);
+    XGpio_Initialize(&m_gpioDIP8, XPAR_DIP_SWITCHES_8BIT_DEVICE_ID);
+    XGpio_SetDataDirection(&m_gpioDIP8, 1, 0xFFFFFFFF);	// dip switches are inputs
 
-	xil_printf("Gain = %d   -> PREGAIN (20h) = 0x%08X\r\n", gain, regval);
+    XGpio_Initialize(&m_gpioPBs5, XPAR_PUSH_BUTTONS_5BIT_DEVICE_ID);
+	XGpio_SetDataDirection(&m_gpioPBs5, 1, 0xFFFFFFFF);	// push buttons are inputs
 
-	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x20, regval);
+    XGpio_Initialize(&m_gpioLEDs8, XPAR_LEDS_8BIT_DEVICE_ID);
+    XGpio_SetDataDirection(&m_gpioLEDs8, 1, 0x00000000);	// LEDs are outputs
 }
 
-typedef struct {
-	int	thresh;
-	int gain;
-} distval_t;
 
-distval_t m_dist_table[] = {
-	{ 0x7FFF,	0x00010000 },
-	{ 8000,	0x00018000 },
-	{ 6000, 0x00020000 },
-	{ 4000, 0x00028000 },
-	{ 2600, 0x00038000 },
-	{ 1800, 0x00048000 },
-	{ 1000, 0x00050000 },
-	{ 800, 	0x00070000 },
-	{ 600, 	0x00090000 },
-	{ 300,  0x000E0000 },
-	{ 160,  0x00180000 },
-	{ 100, 	0x00200000 },
-	{ 60, 	0x00380000 },
-	{ 40, 	0x00480000 },
-	{ 24, 	0x00600000 },
-};
-
-#define MIN_DIST_VAL	0
-#define MAX_DIST_VAL	((sizeof(m_dist_table)/sizeof(m_dist_table[0]))-1)
-
-
-void set_distortion(int dist) {
-	int thresh;
-	int gain;
-
-	if (dist < MIN_DIST_VAL)	dist = MIN_DIST_VAL;
-	if (dist > MAX_DIST_VAL)	dist = MAX_DIST_VAL;
-
-	thresh 	= m_dist_table[dist].thresh;
-	gain 	= m_dist_table[dist].gain;
-
-	xil_printf("Dist = %d   -> DTHRESH (24h) = %d,  DGAIN (28h) = 0x%08X\r\n", dist, thresh, gain);
-
-	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x24, thresh);	// Distortion threshold
-	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x28, gain);	// Distortion gain (fixed 32-16)
+inline u8 read_PB5(void) {
+	return XGpio_DiscreteRead(&m_gpioPBs5, 1) & 0xFF;
 }
 
+inline u8 read_DIP8(void) {
+	return XGpio_DiscreteRead(&m_gpioDIP8, 1) & 0xFF;
+}
+
+void handle_pushbuttons(void) {
+	static u8 s_last_pb = 0;
+	u8 new_pb;
+
+	// Check if push buttons have been pressed or released
+	new_pb = read_PB5();
+	if (new_pb == s_last_pb) return;
+
+	s_last_pb = new_pb;
+	//xil_printf("New Pushbuttons value: 0x%X\r\n", new_pb);
+
+	// Up/down = volume
+	if (new_pb & PB5_N) {		// Up pressed?
+		if (m_pregainval < 40) {
+			m_pregainval++;
+			set_pre_gain(m_pregainval);
+		}
+	}
+	else if (new_pb & PB5_S) {	// Down pressed?
+		if (m_pregainval > 0) {
+			m_pregainval--;
+			set_pre_gain(m_pregainval);
+		}
+	}
+
+	// Left/right = distortion
+	if (new_pb & PB5_E) {		// Right pressed?
+		if (m_distval < MAX_DISTORTION()) {
+			m_distval++;
+			set_distortion(m_distval);
+		}
+	}
+	else if (new_pb & PB5_W) {	// Left pressed?
+		if (m_distval > MIN_DISTORTION()) {
+			m_distval--;
+			set_distortion(m_distval);
+		}
+	}
+}
+
+void handle_dip_switches(void) {
+	static u8 s_last_dip = 0;
+	u8 new_dip;
+	u32 temp;
+
+	// Check if DSP select switches changed
+	new_dip = read_DIP8();
+	if (new_dip == s_last_dip) return;
+
+	s_last_dip = new_dip;
+
+	//xil_printf("New DIP switch value: 0x%X\r\n", new_dip);
+	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET, new_dip);
+
+	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET);
+	xil_printf("Enabled DSPs: 0x%X\r\n", temp);
+}
+
+void probe_audiofx_stats(void) {
+	static u32 s_prev_fsl_sample_count = 0;
+	u32 temp;
+
+	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_0Ch_OFFSET);
+	xil_printf("\r\ndiff = %d\r\n", temp - s_prev_fsl_sample_count);
+	s_prev_fsl_sample_count = temp;
+
+	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_10h_OFFSET);
+	xil_printf("Left avg  = %d\r\n");
+
+	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_14h_OFFSET);
+	xil_printf("Right avg = %d\r\n");
+}
 
 int main(void)
 {
-	u8 cur_dip=0, new_dip=0;
-	u8 cur_pb=0, new_pb=0;
-	u32 temp;
+	print("\r\n\r\nMicroblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
 
-	uint gainval = 1*8;
-	uint distval = 0;
-
-	print("Microblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
+	///////////////////
+	// Initialization
 	init_interrupts();
-	do_ac97_init();
+
 	do_gpio_init();
 
-	//list_regs();
+	do_ac97_init();
+	//list_ac97_regs();
 	//while (1) {}
 
-	set_gain(gainval);
-	set_distortion(distval);
+
+	//////////////////////
+	// Set initial DSP values
+	m_pregainval = 1*8;
+	set_pre_gain(m_pregainval);
+
+	m_distval = MIN_DISTORTION();
+	set_distortion(m_distval);
 
 
-
+	////////////////////////
+	// Main loop
 	print("Entering main loop...\r\n");
     while (1) {
+    	// When the timer ISR sets this flag, perform every-second tasks in the main thread.
+    	if (mv_one_sec_flag) {
+    		mv_one_sec_flag = 0;
 
-    	/*
-    	if (one_second_flag) {
-    		u32 fsl_count=0, prev_fsl_count=0;
-
-    		one_second_flag = 0;
-
-    		fsl_count = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_0Ch_OFFSET);
-    		xil_printf("\r\ndiff = %d\r\n", fsl_count - prev_fsl_count);
-    		prev_fsl_count = fsl_count;
-
-    		temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + 0x10);
-    		xil_printf("Left avg  = %d\r\n");
-
-    		temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + 0x14);
-			xil_printf("Right avg = %d\r\n");
-    	}
-    	*/
-
-    	// Check if DSP select switches changed
-    	new_dip = read_DIP8();
-    	if (new_dip != cur_dip) {
-    		cur_dip = new_dip;
-
-    		xil_printf("New DIP switch value: 0x%X\r\n", new_dip);
-    		XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET, new_dip);
-
-    		temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET);
-
-    		xil_printf("Enabled DSPs: 0x%X\r\n", temp);
+    		probe_audiofx_stats();
     	}
 
-    	// Check if push buttons have been pressed or released
-    	new_pb = read_PB5();
-    	if (new_pb != cur_pb) {
-    		cur_pb = new_pb;
-    		//xil_printf("New Pushbuttons value: 0x%X\r\n", new_pb);
-
-    		// Up/down = volume
-    		if (new_pb & PB5_N) {		// Up pressed?
-    			if (gainval < 40) {
-    				gainval++;
-    				set_gain(gainval);
-    			}
-    		}
-    		else if (new_pb & PB5_S) {	// Down pressed?
-    			if (gainval > 0) {
-    				gainval--;
-    				set_gain(gainval);
-    			}
-    		}
-
-    		// Left/right = distortion
-    		if (new_pb & PB5_E) {		// Right pressed?
-    			if (distval < MAX_DIST_VAL) {
-    				distval++;
-    				set_distortion(distval);
-				}
-			}
-			else if (new_pb & PB5_W) {	// Left pressed?
-				if (distval > MIN_DIST_VAL) {
-					distval--;
-					set_distortion(distval);
-				}
-			}
-
-
-
-    	}
+    	handle_dip_switches();
+    	handle_pushbuttons();
     }
-
-
 
     while (1) { }
     return 0;
