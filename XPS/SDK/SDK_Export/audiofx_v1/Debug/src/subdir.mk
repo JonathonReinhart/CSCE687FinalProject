@@ -4,16 +4,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/helloworld.c 
+../src/audiofx.c 
 
 LD_SRCS += \
 ../src/lscript.ld 
 
 OBJS += \
-./src/helloworld.o 
+./src/audiofx.o 
 
 C_DEPS += \
-./src/helloworld.d 
+./src/audiofx.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

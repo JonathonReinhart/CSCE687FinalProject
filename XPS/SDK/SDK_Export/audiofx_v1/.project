@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>test_0</name>
+	<name>audiofx_v1</name>
 	<comment></comment>
 	<projects>
 		<project>standalone_bsp_0</project>
+		<project>empty_application_bsp_0</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -31,7 +32,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${workspace_loc:/test_0/Debug}</value>
+					<value>${workspace_loc:/audiofx_v1/Debug}</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>

@@ -25,38 +25,38 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 ELFSIZE += \
-test_0.elf.size \
+audiofx_v1.elf.size \
 
 ELFCHECK += \
-test_0.elf.elfcheck \
+audiofx_v1.elf.elfcheck \
 
 
 # All Target
-all: test_0.elf secondary-outputs
+all: audiofx_v1.elf secondary-outputs
 
 # Tool invocations
-test_0.elf: $(OBJS) ../src/lscript.ld $(USER_OBJS)
+audiofx_v1.elf: $(OBJS) ../src/lscript.ld $(USER_OBJS)
 	@echo Building target: $@
 	@echo Invoking: MicroBlaze gcc linker
-	mb-gcc -Wl,-T -Wl,../src/lscript.ld -L../../standalone_bsp_0/microblaze_0/lib -mxl-barrel-shift -mxl-pattern-compare -mcpu=v8.20.a -mno-xl-soft-mul -o"test_0.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	mb-gcc -Wl,-T -Wl,../src/lscript.ld -L../../standalone_bsp_0/microblaze_0/lib -mxl-barrel-shift -mxl-pattern-compare -mcpu=v8.20.a -mno-xl-soft-mul -o"audiofx_v1.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo Finished building target: $@
 	@echo ' '
 
-test_0.elf.size: test_0.elf
+audiofx_v1.elf.size: audiofx_v1.elf
 	@echo Invoking: MicroBlaze Print Size
-	mb-size test_0.elf  |tee "test_0.elf.size"
+	mb-size audiofx_v1.elf  |tee "audiofx_v1.elf.size"
 	@echo Finished building: $@
 	@echo ' '
 
-test_0.elf.elfcheck: test_0.elf
+audiofx_v1.elf.elfcheck: audiofx_v1.elf
 	@echo Invoking: Xilinx ELF Check
-	elfcheck test_0.elf -hw ../../XPS_hw_platform/system.xml -pe microblaze_0  |tee "test_0.elf.elfcheck"
+	elfcheck audiofx_v1.elf -hw ../../XPS_hw_platform/system.xml -pe microblaze_0  |tee "audiofx_v1.elf.elfcheck"
 	@echo Finished building: $@
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES)$(ELFSIZE)$(ELFCHECK)$(S_UPPER_DEPS) test_0.elf
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES)$(ELFSIZE)$(ELFCHECK)$(S_UPPER_DEPS) audiofx_v1.elf
 	-@echo ' '
 
 secondary-outputs: $(ELFSIZE) $(ELFCHECK)
