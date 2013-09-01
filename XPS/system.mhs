@@ -28,6 +28,7 @@
  PORT opb_ac97_controller_0_SData_Out_pin = opb_ac97_controller_0_SData_Out, DIR = O
  PORT opb_ac97_controller_0_SData_In_pin = opb_ac97_controller_0_SData_In, DIR = I
  PORT flash_audio_reset_n = sys_periph_reset_n, DIR = O, SIGIS = RST, RST_POLARITY = 0
+ PORT lcd_ip_0_lcd_pin = lcd_ip_0_lcd, DIR = O, VEC = [0:6]
 
 
 BEGIN microblaze
@@ -298,5 +299,14 @@ BEGIN xps_intc
  BUS_INTERFACE SPLB = mb_plb
  PORT Irq = microblaze_0_INTERRUPT
  PORT Intr = timer1
+END
+
+BEGIN lcd_ip
+ PARAMETER INSTANCE = lcd_ip_0
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_BASEADDR = 0xcf400000
+ PARAMETER C_HIGHADDR = 0xcf40ffff
+ BUS_INTERFACE SPLB = mb_plb
+ PORT lcd = lcd_ip_0_lcd
 END
 

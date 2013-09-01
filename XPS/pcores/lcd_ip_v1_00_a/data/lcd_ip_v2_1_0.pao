@@ -1,0 +1,10 @@
+##############################################################################
+## Filename:          C:/Users/Jonathon/Classwork/CSCE687/Lab3/pcores/lcd_ip_v1_00_a/data/lcd_ip_v2_1_0.pao
+## Description:       Peripheral Analysis Order
+## Date:              Tue Jul 23 04:00:07 2013 (by Create and Import Peripheral Wizard)
+##############################################################################
+
+lib proc_common_v3_00_a  all 
+lib plbv46_slave_single_v1_01_a  all 
+lib lcd_ip_v1_00_a user_logic vhdl
+lib lcd_ip_v1_00_a lcd_ip vhdl

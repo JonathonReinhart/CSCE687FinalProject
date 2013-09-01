@@ -271,9 +271,18 @@ void probe_audiofx_stats(void) {
 	xil_printf("Right avg = %d\r\n");
 }
 
+void XromLCDInit();
+void XromLCDOn();
+void XromLCDPrintString(char * line);
+
 int main(void)
 {
 	print("\r\n\r\nMicroblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
+
+	XromLCDInit();
+	XromLCDOn();
+
+	XromLCDPrintString("--  Audio FX  --");
 
 	///////////////////
 	// Initialization

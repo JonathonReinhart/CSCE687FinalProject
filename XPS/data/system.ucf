@@ -46,3 +46,17 @@ Net opb_ac97_controller_0_Bit_Clk_pin   PERIOD = 80;
 Net flash_audio_reset_n   LOC = AG17;
 Net flash_audio_reset_n   IOSTANDARD = LVCMOS33;
 
+
+#------------------------------------------------------------------------------
+# IO Pad Location Constraints / Properties for Character LCD GPIO
+#------------------------------------------------------------------------------
+
+NET lcd_ip_0_lcd_pin<0> LOC = AC9 | IOSTANDARD = LVCMOS33 | DRIVE = 2 | SLEW = SLOW; # LCD_E
+NET lcd_ip_0_lcd_pin<1> LOC = J17 | IOSTANDARD = LVCMOS25 | DRIVE = 2 | SLEW = SLOW; # LCD_RS
+NET lcd_ip_0_lcd_pin<2> LOC = AC10 | IOSTANDARD = LVCMOS33 | DRIVE = 2 | SLEW = SLOW; # LCD_RW
+NET lcd_ip_0_lcd_pin<3> LOC = T11 | IOSTANDARD = LVCMOS33 | DRIVE = 2 | SLEW = SLOW; # LCD_DB7
+NET lcd_ip_0_lcd_pin<4> LOC = G6 | IOSTANDARD = LVCMOS33 | DRIVE = 2 | SLEW = SLOW; # LCD_DB6
+NET lcd_ip_0_lcd_pin<5> LOC = G7 | IOSTANDARD = LVCMOS33 | DRIVE = 2 | SLEW = SLOW; # LCD_DB5
+NET lcd_ip_0_lcd_pin<6> LOC = T9 | IOSTANDARD = LVCMOS33 | DRIVE = 2 | SLEW = SLOW; # LCD_DB4
+
+
