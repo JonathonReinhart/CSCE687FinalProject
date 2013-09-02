@@ -25,7 +25,7 @@ int main(void)
 	///////////////////
 	// Initialization
 	init_interrupts();
-	init_timer(1000);
+	init_timer(TIMER_PERIOD_MS);
 
 	watchdog_enable(watchdog_handler);
 
@@ -55,7 +55,9 @@ int main(void)
     	if (gv_one_sec_flag) {
     		gv_one_sec_flag = 0;
 
-    		//probe_audiofx_stats();
+#ifdef PROBE_AUDIOFX_STATS
+    		probe_audiofx_stats();
+#endif
     	}
 
     	handle_dip_switches();
@@ -76,12 +78,16 @@ void init_interrupts(void) {
 	microblaze_enable_interrupts();
 }
 
+#ifdef PROBE_AUDIOFX_STATS
 void probe_audiofx_stats(void) {
 	static u32 s_prev_fsl_sample_count = 0;
-	u32 temp;
+	u32 temp, rate;
 
 	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_0Ch_OFFSET);
-	xil_printf("\r\nSampling rate = %d samp/sec\r\n", temp - s_prev_fsl_sample_count);
+	if (s_prev_fsl_sample_count != 0) {
+		rate = (temp - s_prev_fsl_sample_count) * 1000 / TIMER_PERIOD_MS;
+		xil_printf("\r\nSampling rate = %d samp/sec\r\n", rate);
+	}
 	s_prev_fsl_sample_count = temp;
 
 	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_10h_OFFSET);
@@ -90,6 +96,7 @@ void probe_audiofx_stats(void) {
 	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_14h_OFFSET);
 	xil_printf("Right avg = %d\r\n");
 }
+#endif
 
 void watchdog_handler() {
 	xil_printf("\r\n\r\n!!!!!  WATCHDOG  !!!!!\r\n\r\n\r\n\r\n");

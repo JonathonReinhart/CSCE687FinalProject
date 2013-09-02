@@ -6,13 +6,19 @@
 // Uncomment this to allow the LINE_IN signal to flow directly to LINE_OUT (no DSP).
 //#define ANALOG_BYPASS
 
+// Show AC'97 registers at startup
 //#define SHOW_AC97_REGS
+
+// Periodically probe AudioFX core stats
+#define PROBE_AUDIOFX_STATS
 
 
 #define INIT_OUTPUT_VOL		24
 #define INIT_PRE_GAIN		1*8
 #define INIT_DISTORTION		MIN_DISTORTION
 
+
+#define TIMER_PERIOD_MS		750
 
 
 // Move this stuff to another header file
