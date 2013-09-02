@@ -41,6 +41,8 @@ int main(void)
 	set_output_volume(INIT_OUTPUT_VOL);
 	set_pre_gain(INIT_PRE_GAIN);
 	set_distortion(INIT_DISTORTION);
+	set_flanger_period(INIT_FLANGER_PERIOD);
+
 
 	handle_menu(SHOW);
 
@@ -55,7 +57,7 @@ int main(void)
     	if (gv_one_sec_flag) {
     		gv_one_sec_flag = 0;
 
-    		xil_printf("One second.\r\n");
+    		//xil_printf("One second.\r\n");
     	}
 
     	if (gv_tick_flag) {

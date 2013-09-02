@@ -79,7 +79,7 @@ void pre_gain_menu(MENU_ACTION action) {
 
 	menu_show_title("<   PRE-GAIN   >");
 
-	if (get_ena_dsps() & (1<<0)) {
+	if (get_ena_dsps() & (1<<0)) {	// DSP_0
 		default_param_action(action, &s_pre_gain, MIN_PRE_GAIN, MAX_PRE_GAIN, set_pre_gain);
 		show_param_val_range2(s_pre_gain, MIN_PRE_GAIN, MAX_PRE_GAIN);
 	}
@@ -92,11 +92,26 @@ void pre_gain_menu(MENU_ACTION action) {
 void distortion_menu(MENU_ACTION action) {
 	static int s_distortion = INIT_DISTORTION;
 
-	menu_show_title("<  DISTORTION   ");
+	menu_show_title("<  DISTORTION  >");
 
-	if (get_ena_dsps() & (1<<1)) {
+	if (get_ena_dsps() & (1<<1)) {	// DSP_1
 		default_param_action(action, &s_distortion, MIN_DISTORTION, MAX_DISTORTION, set_distortion);
 		show_param_val_range2(s_distortion, MIN_DISTORTION, MAX_DISTORTION);
+	}
+	else {
+		lcd_print_string("   (Disabled)   ");
+	}
+}
+
+
+void flanger_rate_menu(MENU_ACTION action) {
+	static int s_flange_rate = INIT_FLANGER_PERIOD;
+
+	menu_show_title("< FLANGER PER.  ");
+
+	if (get_ena_dsps() & (1<<3)) {	// DSP_3
+		default_param_action(action, &s_flange_rate, MIN_FLANGER_PERIOD, MAX_FLANGER_PERIOD, set_flanger_period);
+		show_param_val_range2(s_flange_rate, MIN_FLANGER_PERIOD, MAX_FLANGER_PERIOD);
 	}
 	else {
 		lcd_print_string("   (Disabled)   ");
@@ -121,6 +136,7 @@ static menu2_t m_menu[] =
 	{master_vol_menu},
 	{pre_gain_menu},
 	{distortion_menu},
+	{flanger_rate_menu},
 };
 #define MIN_MENU2_IDX	0
 #define MAX_MENU2_IDX	ARRAY_LENGTH(m_menu)-1
