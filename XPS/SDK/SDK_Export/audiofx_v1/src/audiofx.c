@@ -2,7 +2,6 @@
 #include <xparameters.h>
 #include <mb_interface.h>
 #include <xintc.h>
-#include <xtmrctr.h>
 #include <xac97.h>
 #include <xac97_l.h>
 #include <audiofx.h>
@@ -11,70 +10,10 @@
 #include "ac97.h"
 #include "lcd.h"
 #include "inputs.h"
+#include "timer.h"
 #include "menu.h"
 #include "config.h"
 
-
-/*** Data ***/
-
-static volatile int mv_one_sec_flag = 0;
-
-static volatile short mv_ac97_init_watchdog = -1;
-
-
-/*** Function definitions ***/
-
-void timer_int_handler(void* _unused) {
-	u32 tcsr0;
-
-	/* Read timer 0 CSR to see if it raised the interrupt */
-	tcsr0 = XTmrCtr_GetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0);
-
-	/* If the interrupt occurred, then increment a counter and set one_second_flag */
-	if (tcsr0 & XTC_CSR_INT_OCCURED_MASK) {
-		/* Clear the timer interrupt */
-		XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0, tcsr0);
-
-		mv_one_sec_flag = 1;
-
-		if (mv_ac97_init_watchdog > -1) {
-			if (++mv_ac97_init_watchdog == 1) {
-				lcd_clear();
-				lcd_print_2strings("AC97 WATCHDOG", LCD_BLANKLINE);
-			}
-		}
-	}
-}
-
-void init_timer(int period) {
-
-	// Set the number of cycles the timer counts before interrupting
-	XTmrCtr_SetLoadReg(XPAR_XPS_TIMER_0_BASEADDR, 0, period * XPAR_XPS_TIMER_0_CLOCK_FREQ_HZ / 1000);
-
-	// Reset the timer, and clear the interrupt occurred flag
-	XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0,
-			XTC_CSR_INT_OCCURED_MASK |        // Clear T0INT
-			XTC_CSR_LOAD_MASK                 // LOAD0 1 = Loads timer with value in TLR0
-			);
-
-	// Start the timers
-	XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0,
-			XTC_CSR_ENABLE_TMR_MASK |         // ENT0 Enable Timer0
-			XTC_CSR_ENABLE_INT_MASK |         // ENIT Enable Interrupt for Timer0
-			XTC_CSR_AUTO_RELOAD_MASK |        // ARHT0 1 = Auto reload Timer0 and continue running
-			XTC_CSR_DOWN_COUNT_MASK           // UDT0  1 = Timer counts down
-			);
-
-	// Register the Timer interrupt handler in the vector table
-	XIntc_RegisterHandler(
-			XPAR_XPS_INTC_0_BASEADDR,                       // BaseAddress
-			XPAR_XPS_INTC_0_XPS_TIMER_0_INTERRUPT_INTR,     // InterruptId
-			timer_int_handler,                              // Handler
-			0);                                             // CallBackRef - parameter passed to Handler
-
-	// Enable timer interrupts in the interrupt controller
-	XIntc_EnableIntr(XPAR_XPS_INTC_0_BASEADDR, XPAR_XPS_TIMER_0_INTERRUPT_MASK);
-}
 
 void init_interrupts(void) {
 	FUNC_ENTER();
@@ -102,29 +41,32 @@ void probe_audiofx_stats(void) {
 }
 
 /******************************************************************************/
+void watchdog_handler() {
+	xil_printf("\r\n\r\n!!!!!  WATCHDOG  !!!!!\r\n\r\n\r\n\r\n");
+	lcd_clear();
+	lcd_print_2strings("    WATCHDOG!", LCD_BLANKLINE);
+
+	// TODO: Perform a hardware-reset of the system.
+}
 
 int main(void)
 {
 	print("\r\n\r\nMicroblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
-
-	lcd_init();
-	lcd_on();
-
-	lcd_clear();
-	lcd_print_string("Init");
-
 
 	///////////////////
 	// Initialization
 	init_interrupts();
 	init_timer(1000);
 
+	watchdog_enable(watchdog_handler);
+
+	lcd_init();
+	lcd_on();
+	lcd_clear();
+	lcd_print_string("Init");
+
 	do_gpio_init();
-
-	mv_ac97_init_watchdog = 0;
 	do_ac97_init();
-	mv_ac97_init_watchdog = -1;
-
 
 	//////////////////////
 	// Set parameter DSP values
@@ -139,11 +81,13 @@ int main(void)
 	// Main loop
 	print("Entering main loop...\r\n");
     while (1) {
-    	// When the timer ISR sets this flag, perform every-second tasks in the main thread.
-    	if (mv_one_sec_flag) {
-    		mv_one_sec_flag = 0;
+    	watchdog_kick();
 
-    		probe_audiofx_stats();
+    	// When the timer ISR sets this flag, perform every-second tasks in the main thread.
+    	if (gv_one_sec_flag) {
+    		gv_one_sec_flag = 0;
+
+    		//probe_audiofx_stats();
     	}
 
     	handle_dip_switches();
