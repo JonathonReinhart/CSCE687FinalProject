@@ -25,7 +25,7 @@ int main(void)
 	///////////////////
 	// Initialization
 	init_interrupts();
-	init_timer(TIMER_PERIOD_MS);
+	init_timer();
 
 	watchdog_enable(watchdog_handler);
 
@@ -55,10 +55,18 @@ int main(void)
     	if (gv_one_sec_flag) {
     		gv_one_sec_flag = 0;
 
+    		xil_printf("One second.\r\n");
+    	}
+
+    	if (gv_tick_flag) {
+    		gv_tick_flag = 0;
+
 #ifdef PROBE_AUDIOFX_STATS
     		probe_audiofx_stats();
 #endif
     	}
+
+
 
     	handle_dip_switches();
     	handle_pushbuttons();
@@ -81,12 +89,12 @@ void init_interrupts(void) {
 #ifdef PROBE_AUDIOFX_STATS
 void probe_audiofx_stats(void) {
 	static u32 s_prev_fsl_sample_count = 0;
-	u32 temp, rate;
+	u32 temp;
 
 	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_0Ch_OFFSET);
 	if (s_prev_fsl_sample_count != 0) {
-		rate = (temp - s_prev_fsl_sample_count) * 1000 / TIMER_PERIOD_MS;
-		xil_printf("\r\nSampling rate = %d samp/sec\r\n", rate);
+		u32 diff = (temp - s_prev_fsl_sample_count);
+		xil_printf("\r\nSampling rate = %d samp/sec\r\n", (diff * TIMER_TICK_HZ));
 	}
 	s_prev_fsl_sample_count = temp;
 

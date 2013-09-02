@@ -17,8 +17,7 @@
 #define INIT_PRE_GAIN		1*8
 #define INIT_DISTORTION		MIN_DISTORTION
 
-
-#define TIMER_PERIOD_MS		750
+#define TIMER_TICK_HZ		2
 
 
 // Move this stuff to another header file

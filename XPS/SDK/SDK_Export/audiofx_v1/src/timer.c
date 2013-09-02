@@ -1,8 +1,10 @@
 #include <xparameters.h>
 #include <xtmrctr.h>
 #include <xintc.h>
+#include "config.h"
 
-volatile int gv_one_sec_flag = 0;
+volatile char gv_tick_flag = 0;
+volatile char gv_one_sec_flag = 0;
 
 static void (*m_watchdog_tripped)(void);
 static volatile int m_watchdog_timer = -1;
@@ -30,6 +32,8 @@ void watchdog_tick(void) {
 	}
 }
 
+static int m_ticks;
+
 void timer_interrupt_handler(void* _unused) {
 	u32 tcsr0;
 
@@ -41,16 +45,21 @@ void timer_interrupt_handler(void* _unused) {
 		/* Clear the timer interrupt */
 		XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0, tcsr0);
 
-		gv_one_sec_flag = 1;
+		gv_tick_flag = 1;
+
+		if (++m_ticks == TIMER_TICK_HZ) {
+			m_ticks = 0;
+			gv_one_sec_flag = 1;
+		}
 
 		watchdog_tick();
 	}
 }
 
-void init_timer(int period) {
+void init_timer(void) {
 
 	// Set the number of cycles the timer counts before interrupting
-	XTmrCtr_SetLoadReg(XPAR_XPS_TIMER_0_BASEADDR, 0, period * XPAR_XPS_TIMER_0_CLOCK_FREQ_HZ / 1000);
+	XTmrCtr_SetLoadReg(XPAR_XPS_TIMER_0_BASEADDR, 0, XPAR_XPS_TIMER_0_CLOCK_FREQ_HZ / TIMER_TICK_HZ);
 
 	// Reset the timer, and clear the interrupt occurred flag
 	XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0,
