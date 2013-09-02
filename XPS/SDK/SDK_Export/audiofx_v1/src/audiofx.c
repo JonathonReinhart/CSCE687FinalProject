@@ -3,7 +3,6 @@
 // Uncomment this to allow the LINE_IN signal to flow directly to LINE_OUT (no DSP).
 //#define ANALOG_BYPASS
 
-
 // End configurable options
 
 #include <stdio.h>
@@ -18,6 +17,12 @@
 #include "lcd.h"
 
 /*** Macros, project-specific definitions ***/
+
+#define INIT_OUTPUT_VOL		24
+#define INIT_PRE_GAIN		1*8
+#define INIT_DISTORTION		MIN_DISTORTION
+
+#define ARRAY_LENGTH(ar)	(sizeof(ar)/sizeof(ar[0]))
 
 #define FUNC_ENTER()	xil_printf(" %s()\r\n", __FUNCTION__)
 
@@ -205,104 +210,152 @@ void do_gpio_init(void) {
 }
 
 
-
 /******************************************************************************/
-// Menu
+// Menu 2
 
-typedef struct {
-	const char* name;
-	int value;
-	int minval;
-	int maxval;
-	void (*updatefunc)(int val);
-} param_t;
+int get_ena_dsps(void) {
+	return XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET);
+}
 
-#define INIT_OUTPUT_VOL		24
-#define INIT_PRE_GAIN		1*8
-#define INIT_DISTORTION		MIN_DISTORTION
-
-static param_t m_parameter_table[] =
+void menu_show_title(const char *title)
 {
-	{"   MASTER VOL. >", INIT_OUTPUT_VOL, MIN_OUTPUT_VOLUME, MAX_OUTPUT_VOLUME, set_output_volume},
-	{"<   PRE-GAIN   >", INIT_PRE_GAIN, MIN_PRE_GAIN, MAX_PRE_GAIN, set_pre_gain},
-	{"<  DISTORTION   ", INIT_DISTORTION, MIN_DISTORTION, MAX_DISTORTION, set_distortion},
-};
+    lcd_clear();
+    lcd_set_line(1);
+    lcd_print_string(title);
+    lcd_set_line(2);
+}
 
-#define MIN_PARAM_IDX	0
-#define MAX_PARAM_IDX	(int)((sizeof(m_parameter_table)/sizeof(m_parameter_table[0]))-1)
-#define MENU_HOME		-1
+void show_param_val_range2(int val, int min, int max) {
+	lcd_move_cursor_right();
+	lcd_move_cursor_right();
+	lcd_move_cursor_right();
+	lcd_print_int(val);
 
-static int m_menu_idx = MENU_HOME;
+	if (val < 100)
+		lcd_move_cursor_right();
+	if (val < 10)
+		lcd_move_cursor_right();
 
-void show_cur_menu(void) {
-	lcd_clear();
+	lcd_move_cursor_right();
+	lcd_move_cursor_right();
+	lcd_print_char('(');
+	lcd_print_int(min);
+	lcd_print_char('-');
+	lcd_print_int(max);
+	lcd_print_char(')');
+}
 
-	if (m_menu_idx == MENU_HOME) {
-		lcd_print_2strings("--  Audio FX  --", LCD_BLANKLINE);
+typedef enum {
+	SHOW,
+	UP_PRESSED,
+	DOWN_PRESSED,
+	LEFT_PRESSED,
+	RIGHT_PRESSED,
+	CENTER_PRESSED,
+} MENU_ACTION;
+
+void default_param_action(MENU_ACTION action, int* value, int minval, int maxval, void (*update)(int)) {
+	switch (action) {
+	case UP_PRESSED:
+		if (*value < maxval) {
+			++(*value);
+			update(*value);
+		}
+		break;
+	case DOWN_PRESSED:
+		if (*value > minval) {
+			--(*value);
+			update(*value);
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void master_vol_menu(MENU_ACTION action) {
+	static int s_master_vol = INIT_OUTPUT_VOL;
+
+	menu_show_title("   MASTER VOL. >");
+
+	default_param_action(action, &s_master_vol, MIN_OUTPUT_VOLUME, MAX_OUTPUT_VOLUME, set_output_volume);
+
+	if (s_master_vol == 0) {
+		lcd_print_string("     (Mute)     ");
 	}
 	else {
-		param_t* cur = &m_parameter_table[m_menu_idx];
-
-		lcd_set_line(1);
-		lcd_print_string(cur->name);
-
-		lcd_set_line(2);
-		lcd_move_cursor_right();
-		lcd_move_cursor_right();
-		lcd_move_cursor_right();
-		lcd_print_int(cur->value);
-
-		if (cur->value < 100)
-			lcd_move_cursor_right();
-		if (cur->value < 10)
-			lcd_move_cursor_right();
-
-		lcd_move_cursor_right();
-		lcd_move_cursor_right();
-		lcd_print_char('(');
-		lcd_print_int(cur->minval);
-		lcd_print_char('-');
-		lcd_print_int(cur->maxval);
-		lcd_print_char(')');
+		show_param_val_range2(s_master_vol, MIN_OUTPUT_VOLUME, MAX_OUTPUT_VOLUME);
 	}
 }
 
-void menu_right_pressed(void) {
-	if (m_menu_idx >= MAX_PARAM_IDX) return;
+void pre_gain_menu(MENU_ACTION action) {
+	static int s_pre_gain = INIT_PRE_GAIN;
 
-	m_menu_idx++;
-	show_cur_menu();
-}
+	menu_show_title("<   PRE-GAIN   >");
 
-void menu_left_pressed(void) {
-	if (m_menu_idx <= MIN_PARAM_IDX) return;
-
-	m_menu_idx--;
-	show_cur_menu();
-}
-
-void menu_up_pressed(void) {
-	param_t* cur = &m_parameter_table[m_menu_idx];
-
-	if (m_menu_idx == MENU_HOME) return;
-
-	if (cur->value < cur->maxval) {
-		cur->value++;
-		cur->updatefunc(cur->value);
+	if (get_ena_dsps() & (1<<0)) {
+		default_param_action(action, &s_pre_gain, MIN_PRE_GAIN, MAX_PRE_GAIN, set_pre_gain);
+		show_param_val_range2(s_pre_gain, MIN_PRE_GAIN, MAX_PRE_GAIN);
 	}
-	show_cur_menu();
+	else {
+		lcd_print_string("   (Disabled)   ");
+	}
 }
 
-void menu_down_pressed(void) {
-	param_t* cur = &m_parameter_table[m_menu_idx];
 
-	if (m_menu_idx == MENU_HOME) return;
+void distortion_menu(MENU_ACTION action) {
+	static int s_distortion = INIT_DISTORTION;
 
-	if (cur->value > cur->minval) {
-		cur->value--;
-		cur->updatefunc(cur->value);
+	menu_show_title("<  DISTORTION   ");
+
+	if (get_ena_dsps() & (1<<1)) {
+		default_param_action(action, &s_distortion, MIN_DISTORTION, MAX_DISTORTION, set_distortion);
+		show_param_val_range2(s_distortion, MIN_DISTORTION, MAX_DISTORTION);
 	}
-	show_cur_menu();
+	else {
+		lcd_print_string("   (Disabled)   ");
+	}
+}
+
+void home_menu(MENU_ACTION action) {
+	menu_show_title( "--  Audio FX  --");
+	lcd_print_string("         Menu ->");
+}
+
+
+typedef void (*menu_func_t)(MENU_ACTION action);
+
+typedef struct {
+	menu_func_t		func;
+} menu2_t;
+
+static menu2_t m_menu[] =
+{
+	{home_menu},
+	{master_vol_menu},
+	{pre_gain_menu},
+	{distortion_menu},
+};
+#define MIN_MENU2_IDX	0
+#define MAX_MENU2_IDX	ARRAY_LENGTH(m_menu)-1
+
+static int m_menu2_idx = MIN_MENU2_IDX;
+
+void handle_menu(MENU_ACTION action) {
+	switch (action) {
+	case LEFT_PRESSED:
+		if (m_menu2_idx > MIN_MENU2_IDX)
+			--m_menu2_idx;
+		break;
+	case RIGHT_PRESSED:
+		if (m_menu2_idx < MAX_MENU2_IDX)
+			++m_menu2_idx;
+		break;
+	default:
+		break;
+	}
+
+	m_menu[m_menu2_idx].func(action);
 }
 
 /******************************************************************************/
@@ -330,18 +383,18 @@ void handle_pushbuttons(void) {
 
 	// Up/down = volume
 	if (new_pb & PB5_N) {		// Up pressed?
-		menu_up_pressed();
+		handle_menu(UP_PRESSED);
 	}
 	else if (new_pb & PB5_S) {	// Down pressed?
-		menu_down_pressed();
+		handle_menu(DOWN_PRESSED);
 	}
 
 	// Left/right = distortion
 	if (new_pb & PB5_E) {		// Right pressed?
-		menu_right_pressed();
+		handle_menu(RIGHT_PRESSED);
 	}
 	else if (new_pb & PB5_W) {	// Left pressed?
-		menu_left_pressed();
+		handle_menu(LEFT_PRESSED);
 	}
 }
 
@@ -361,6 +414,8 @@ void handle_dip_switches(void) {
 
 	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET);
 	xil_printf("Enabled DSPs: 0x%X\r\n", temp);
+
+	handle_menu(SHOW);
 }
 
 void probe_audiofx_stats(void) {
@@ -411,7 +466,7 @@ int main(void)
 	set_pre_gain(INIT_PRE_GAIN);
 	set_distortion(INIT_DISTORTION);
 
-	show_cur_menu();
+	handle_menu(SHOW);
 
 
 	////////////////////////
