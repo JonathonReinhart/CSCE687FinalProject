@@ -46,31 +46,10 @@ void timer_int_handler(void* _unused) {
 	}
 }
 
-void init_interrupts(void) {
-	FUNC_ENTER();
-
-	////////////////////////////////////
-	// Initialize interrupt controller
-
-	// Register the Timer interrupt handler in the vector table
-	XIntc_RegisterHandler(
-			XPAR_XPS_INTC_0_BASEADDR,                       // BaseAddress
-			XPAR_XPS_INTC_0_XPS_TIMER_0_INTERRUPT_INTR,     // InterruptId
-			timer_int_handler,                              // Handler
-			0);                                             // CallBackRef - parameter passed to Handler
-
-	// Start the interrupt controller
-	XIntc_MasterEnable(XPAR_XPS_INTC_0_BASEADDR);
-
-	// Enable timer interrupts in the interrupt controller
-	XIntc_EnableIntr(XPAR_XPS_INTC_0_BASEADDR, XPAR_XPS_TIMER_0_INTERRUPT_MASK);
-
-
-	////////////////////////////////////
-	// Initialize timer
+void init_timer(int period) {
 
 	// Set the number of cycles the timer counts before interrupting
-	XTmrCtr_SetLoadReg(XPAR_XPS_TIMER_0_BASEADDR, 0, 1 * XPAR_XPS_TIMER_0_CLOCK_FREQ_HZ);
+	XTmrCtr_SetLoadReg(XPAR_XPS_TIMER_0_BASEADDR, 0, period * XPAR_XPS_TIMER_0_CLOCK_FREQ_HZ / 1000);
 
 	// Reset the timer, and clear the interrupt occurred flag
 	XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0,
@@ -86,10 +65,23 @@ void init_interrupts(void) {
 			XTC_CSR_DOWN_COUNT_MASK           // UDT0  1 = Timer counts down
 			);
 
+	// Register the Timer interrupt handler in the vector table
+	XIntc_RegisterHandler(
+			XPAR_XPS_INTC_0_BASEADDR,                       // BaseAddress
+			XPAR_XPS_INTC_0_XPS_TIMER_0_INTERRUPT_INTR,     // InterruptId
+			timer_int_handler,                              // Handler
+			0);                                             // CallBackRef - parameter passed to Handler
 
-	////////////////////////////////////
+	// Enable timer interrupts in the interrupt controller
+	XIntc_EnableIntr(XPAR_XPS_INTC_0_BASEADDR, XPAR_XPS_TIMER_0_INTERRUPT_MASK);
+}
 
-	// Ready to go - enable interrupts!
+void init_interrupts(void) {
+	FUNC_ENTER();
+
+	// Start the interrupt controller
+	XIntc_MasterEnable(XPAR_XPS_INTC_0_BASEADDR);
+
 	microblaze_enable_interrupts();
 }
 
@@ -99,7 +91,7 @@ void probe_audiofx_stats(void) {
 	u32 temp;
 
 	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_0Ch_OFFSET);
-	xil_printf("\r\ndiff = %d\r\n", temp - s_prev_fsl_sample_count);
+	xil_printf("\r\nSampling rate = %d samp/sec\r\n", temp - s_prev_fsl_sample_count);
 	s_prev_fsl_sample_count = temp;
 
 	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_10h_OFFSET);
@@ -125,6 +117,7 @@ int main(void)
 	///////////////////
 	// Initialization
 	init_interrupts();
+	init_timer(1000);
 
 	do_gpio_init();
 
@@ -150,7 +143,7 @@ int main(void)
     	if (mv_one_sec_flag) {
     		mv_one_sec_flag = 0;
 
-    		//probe_audiofx_stats();
+    		probe_audiofx_stats();
     	}
 
     	handle_dip_switches();
