@@ -41,7 +41,7 @@ void timer_interrupt_handler(void* _unused) {
 		/* Clear the timer interrupt */
 		XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0, tcsr0);
 
-		//mv_one_sec_flag = 1;
+		gv_one_sec_flag = 1;
 
 		watchdog_tick();
 	}
