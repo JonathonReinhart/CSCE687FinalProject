@@ -4,6 +4,7 @@
 #define LCD_BLANKLINE	"                "
 
 void lcd_init(void);
+char lcd_is_initialized(void);
 void lcd_on(void);
 void lcd_off(void);
 void lcd_clear(void);

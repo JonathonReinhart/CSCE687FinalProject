@@ -11,6 +11,7 @@
 
 #define LCD_NUM_COLS	16
 
+static char m_lcd_initialized = 0;
 
 //==============================================================================
 //
@@ -154,9 +155,15 @@ void lcd_init(void) {
 	XromWriteInst(0x00000000, 0x0000000C);
 
 	//Display Clear
-	XromWriteInst(0x00000000, 0x00000001);
+	//XromWriteInst(0x00000000, 0x00000001);
+	lcd_clear();
+
+	m_lcd_initialized = 1;
 }
 
+char lcd_is_initialized(void) {
+	return m_lcd_initialized;
+}
 
 void lcd_set_line(int line){ //line1 = 1, line2 = 2
 
