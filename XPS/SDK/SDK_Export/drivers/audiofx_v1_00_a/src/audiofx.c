@@ -78,3 +78,66 @@ void set_distortion(int dist) {
 
 
 /**************************************************************************************************/
+// DSP_3    Flanger
+
+/*
+    A sawtooth generator selects for far back in the past to grab a sample.
+    The sawtooth delays for saw_delay clocks before advancing to the next value.
+    
+            _           _
+          _- -_       _- -_           |
+        _-     -_   _-     -_         | depth
+      _-         -_-         -_       |
+    >| |<         |<--------->|
+    saw_delay     flanger_period
+
+    * saw_delay is the number of samples the sawtooth waits before incrementing
+      to the next value (shown here as the width of each dash)
+    
+    * depth is the maximum value of the sawtooth generator, which determines
+      how-far-back a sample from the delay buffer is added to the outuput.
+      It is currently hard-coded to 480 (10ms).
+    
+    * flanger_period then, is calculated as:
+       2 * saw_delay * depth  (samples)
+
+    Or
+
+          2 * saw_delay * depth
+        ------------------------  = Tflange (seconds)
+             48000
+
+
+    Solving for saw_delay:
+
+          Tflange * 48000
+        ------------------------  = saw_delay (samp)
+           2 * depth
+           
+           
+    Our minimum saw_delay is 1, which yields a Tflange-min of
+       (2 * 1 * 480) / 48000 = 0.02
+    which is unreasonably fast, so we set the Tflange-min to 1 (0.1 sec)
+    
+    Our maximum saw_delay is shy of 1024 samples:
+       (2 * 1024 * 480) / 48000 = 20.48
+    So we will go with an unlikely high value of of 200 (20.0 sec)
+       
+*/
+
+#define SAMP_RATE       48000
+#define FLANGER_DEPTH	480		// samples
+
+void set_saw_delay(int saw_delay) {
+	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_FLSAWDLY_REG_OFFSET, saw_delay);
+}
+
+void set_flanger_period(int period_tenths) {
+
+	int saw_delay = (period_tenths * SAMP_RATE / 10) / (2 * FLANGER_DEPTH);
+
+	xil_printf("set_flanger_period() period_tenths=%d  saw_delay=%d\r\n", period_tenths, saw_delay);
+
+	set_saw_delay(saw_delay);
+}
+

@@ -25,4 +25,9 @@ void set_pre_gain(int gain);
 #define MAX_DISTORTION  14
 void set_distortion(int dist);
 
+// Flanger
+#define MIN_FLANGER_PERIOD  1       //  0.1 sec
+#define MAX_FLANGER_PERIOD  200     // 20.0 sec
+void set_flanger_period(int period_tenths);
+
 #endif /* AUDIOFX_H */

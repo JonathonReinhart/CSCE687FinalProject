@@ -22,7 +22,7 @@
 #define AUDIOFX_REG_20h_OFFSET          0x0020
 #define AUDIOFX_REG_24h_OFFSET          0x0024
 #define AUDIOFX_REG_28h_OFFSET          0x0028
-#define AUDIOFX_REG_2Ch_OFFSET          0x002C
+#define AUDIOFX_FLSAWDLY_REG_OFFSET     0x002C
 #define AUDIOFX_REG_30h_OFFSET          0x0030
 #define AUDIOFX_REG_34h_OFFSET          0x0034
 #define AUDIOFX_REG_38h_OFFSET          0x0038
