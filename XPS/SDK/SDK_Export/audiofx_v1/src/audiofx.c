@@ -117,15 +117,18 @@ void init_interrupts(void) {
 // 0 = mute
 // 32 = max
 void set_output_volume(int vol) {
+	u16 regval;
+
 	if (vol == 0) {
-		WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, XAC97_VOL_MUTE);
+		regval = XAC97_VOL_MUTE;
 	}
 	else if (vol <= MAX_OUTPUT_VOLUME) {
 		u8 val = 32 - vol;
-		u16 regval = (val << 8) | val;
-		xil_printf("Setting master volume reg (02h) to 0x%04X\r\n", regval);
-		WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, regval);
+		regval = ((32-vol) << 8) | val;
 	}
+
+	xil_printf("Setting master volume reg (%02Xh) to 0x%04X\r\n", XAC97_STEREO_VOLUME_REG, regval);
+	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, regval);
 }
 
 
