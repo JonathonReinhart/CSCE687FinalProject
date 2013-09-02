@@ -22,6 +22,21 @@ void set_output_volume(int vol) {
 	WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, regval);
 }
 
+#ifdef SHOW_AC97_REGS
+void list_ac97_regs(void) {
+	int i;
+	u16 val;
+
+	xil_printf("0x%X\r\n", ReadAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_RECORD_SELECT_REG));
+
+	print("AC'97 registers:\r\n");
+	for (i=0; i<=0x3A; i+=2) {
+		val = ReadAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, i);
+
+		xil_printf("  [%02Xh] = 0x%04X\r\n", i, val);
+	}
+}
+#endif
 
 
 
@@ -62,4 +77,9 @@ void do_ac97_init(void) {
 
 	print("Calling record_enable\r\n");
 	record_enable();
+
+#ifdef SHOW_AC97_REGS
+	list_ac97_regs();
+#endif
 }
+

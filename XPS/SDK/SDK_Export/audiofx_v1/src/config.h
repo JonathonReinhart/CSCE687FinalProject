@@ -6,6 +6,9 @@
 // Uncomment this to allow the LINE_IN signal to flow directly to LINE_OUT (no DSP).
 //#define ANALOG_BYPASS
 
+//#define SHOW_AC97_REGS
+
+
 #define INIT_OUTPUT_VOL		24
 #define INIT_PRE_GAIN		1*8
 #define INIT_DISTORTION		MIN_DISTORTION
