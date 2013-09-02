@@ -15,6 +15,7 @@
 #include <xac97_l.h>
 #include <audiofx.h>
 #include <xgpio.h>
+#include "lcd.h"
 
 /*** Macros, project-specific definitions ***/
 
@@ -271,18 +272,17 @@ void probe_audiofx_stats(void) {
 	xil_printf("Right avg = %d\r\n");
 }
 
-void XromLCDInit();
-void XromLCDOn();
-void XromLCDPrintString(char * line);
 
 int main(void)
 {
 	print("\r\n\r\nMicroblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
 
-	XromLCDInit();
-	XromLCDOn();
+	lcd_init();
+	lcd_on();
 
-	XromLCDPrintString("--  Audio FX  --");
+	lcd_print_string("--  Audio FX  --");
+	lcd_set_line(2);
+	lcd_print_string(__TIME__);
 
 	///////////////////
 	// Initialization

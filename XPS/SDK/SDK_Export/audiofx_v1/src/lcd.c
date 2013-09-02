@@ -4,12 +4,10 @@
 
 
 
-
 #define LCD_BASEADDR XPAR_LCD_IP_0_BASEADDR
 #define INIT_DELAY 1000 //usec delay timer during initialization, important to change if clock speed changes
 #define INST_DELAY 500 //usec delay timer between instructions
 #define DATA_DELAY 250 //usec delay timer between data
-
 
 
 
@@ -20,25 +18,24 @@
 //==============================================================================
 
 
-void usleep(unsigned int delay)
-{
-unsigned int j, i;
+static void lcd_udelay(unsigned int delay) {
+	unsigned int j, i;
 
-for(i=0; i<delay; i++)
-   for(j=0; j<26; j++);
+	for(i=0; i<delay; i++)
+	   for(j=0; j<26; j++);
 }
 
-void XromInitInst(void)
+static void XromInitInst(void)
 {
 		XGpio_WriteReg(LCD_BASEADDR, 1, 0x00000003);
-		usleep(1);
+		lcd_udelay(1);
 		XGpio_WriteReg(LCD_BASEADDR, 1, 0x00000043); //set enable and data
-		usleep(1);
+		lcd_udelay(1);
 		XGpio_WriteReg(LCD_BASEADDR, 1, 0x00000003);
-		usleep(INIT_DELAY);
+		lcd_udelay(INIT_DELAY);
 }
 
-void XromWriteInst(unsigned long inst1, unsigned long inst2)
+static void XromWriteInst(unsigned long inst1, unsigned long inst2)
 {
 
 	unsigned long printinst;
@@ -46,23 +43,23 @@ void XromWriteInst(unsigned long inst1, unsigned long inst2)
 	printinst = 0x00000040 | inst1;
 
 	XGpio_WriteReg(LCD_BASEADDR, 1, inst1); //write data
-	usleep(1);
+	lcd_udelay(1);
 	XGpio_WriteReg(LCD_BASEADDR, 1, printinst); //set enable
-	usleep(1);
+	lcd_udelay(1);
 	XGpio_WriteReg(LCD_BASEADDR, 1, inst1); //turn off enable
-	usleep(1);
+	lcd_udelay(1);
 
 	printinst = 0x00000040 | inst2;
 
 	XGpio_WriteReg(LCD_BASEADDR, 1, printinst); //set enable and data
-	usleep(1);
+	lcd_udelay(1);
 	XGpio_WriteReg(LCD_BASEADDR, 1, inst2); //turn off enable
 
-	usleep(INST_DELAY);
+	lcd_udelay(INST_DELAY);
 
 }
 
-void XromWriteData(unsigned long data1, unsigned long data2)
+static void XromWriteData(unsigned long data1, unsigned long data2)
 {
 
 	unsigned long rs_data, enable_rs_data;
@@ -72,20 +69,20 @@ void XromWriteData(unsigned long data1, unsigned long data2)
 	enable_rs_data = (0x00000060 | data1);
 
 	XGpio_WriteReg(LCD_BASEADDR, 1, rs_data); //write data, rs
-	usleep(1);
+	lcd_udelay(1);
 	XGpio_WriteReg(LCD_BASEADDR, 1, enable_rs_data); //set enable, keep data, rs
-	usleep(1);
+	lcd_udelay(1);
 	XGpio_WriteReg(LCD_BASEADDR, 1, rs_data); //turn off enable
-	usleep(1);
+	lcd_udelay(1);
 
 	rs_data = (0x00000020 | data2); //sets rs, data2
 	enable_rs_data = (0x00000060 | data2); //sets rs, data2
 
 	XGpio_WriteReg(LCD_BASEADDR, 1, enable_rs_data); //set enable, rs, data
-	usleep(1);
+	lcd_udelay(1);
 	XGpio_WriteReg(LCD_BASEADDR, 1, rs_data); //turn off enable
 
-	usleep(DATA_DELAY);
+	lcd_udelay(DATA_DELAY);
 }
 
 
@@ -98,45 +95,42 @@ void XromWriteData(unsigned long data1, unsigned long data2)
 //
 //==================================================================================
 
-void XromMoveCursorHome(){
+void lcd_move_cursor_home(){
 	XromWriteInst(0x00000000, 0x00000002);
 }
 
-void XromMoveCursorLeft(){
+void lcd_move_cursor_left(){
 	XromWriteInst(0x00000001, 0x00000000);
 }
 
-void XromMoveCursorRight(){
+void lcd_move_cursor_right(){
 	XromWriteInst(0x00000001, 0x00000004);
 }
 
-void XromLCDOn(){
-	//xil_printf("DISPLAY ON\r\n");
-		XromWriteInst(0x00000000, 0x0000000E);
+void lcd_on(void) {
+	XromWriteInst(0x00000000, 0x0000000E);
 }
 
-void XromLCDOff(){
-	//xil_printf("DISPLAY OFF\r\n");
-		XromWriteInst(0x00000000, 0x00000008);
+void lcd_off(void) {
+	XromWriteInst(0x00000000, 0x00000008);
 }
 
-void XromLCDClear(){
-	//xil_printf("DISPLAY CLEAR\r\n");
-		XromWriteInst(0x00000000, 0x00000001);
-		XromWriteInst(0x00000000, 0x00000010);
-		XromMoveCursorHome();
+void lcd_clear(void) {
+	XromWriteInst(0x00000000, 0x00000001);
+	XromWriteInst(0x00000000, 0x00000010);
+	lcd_move_cursor_home();
 }
 
-void XromLCDInit(){
+void lcd_init(void) {
 	//XGpio_SetDataDirection(LCD_BASEADDR, 1, 0x00000000); //Sets CHAR LCD Reg to Write Mode
 	XGpio_WriteReg(LCD_BASEADDR, 1, 0x00000000); //Zeroes CHAR LCD Reg
 
 	//LCD INIT
-	usleep(15000);	//After VCC>4.5V Wait 15ms to Init Char LCD
+	lcd_udelay(15000);	//After VCC>4.5V Wait 15ms to Init Char LCD
 		XromInitInst();
-	usleep(4100); //Wait 4.1ms
+	lcd_udelay(4100); //Wait 4.1ms
 		XromInitInst();
-	usleep(100); //Wait 100us
+	lcd_udelay(100); //Wait 100us
 		XromInitInst();
 		XromInitInst();
 
@@ -157,62 +151,54 @@ void XromLCDInit(){
 }
 
 
-void XromLCDSetLine(int line){ //line1 = 1, line2 = 2
+void lcd_set_line(int line){ //line1 = 1, line2 = 2
 
 	int i;
 
 	if((line - 1)) {
-		XromMoveCursorHome();
+		lcd_move_cursor_home();
 		for(i=0; i<40; i++)
-			XromMoveCursorRight();
+			lcd_move_cursor_right();
 	}
 	else
-		XromMoveCursorHome();
+		lcd_move_cursor_home();
 
 }
 
-void XromLCDPrintChar(char c){
+void lcd_print_char(char c){
 	XromWriteData(((c >> 4) & 0x0000000F), (c & 0x0000000F));
 }
 
-void XromLCDPrintString(char * line){
-
+void lcd_print_string(const char * line) {
 	int i=0;
-		while(line[i]){
-			XromLCDPrintChar(line[i]);
-			i++;
-		}
-
-	return;
+	while(line[i]){
+		lcd_print_char(line[i]);
+		i++;
+	}
 }
 
-void XromLCDPrint2Strings(char * line1, char * line2){
-
+void lcd_print_2strings(const char* line1, const char* line2) {
 	int i=0;
 
-		XromLCDSetLine(1);
+	lcd_set_line(1);
 
-		for(i=0; i<16; i++){
-			if(line1[i])
-				XromLCDPrintChar(line1[i]);
-			else break;
-		}
+	for(i=0; i<16; i++){
+		if(line1[i])
+			lcd_print_char(line1[i]);
+		else break;
+	}
 
-		XromLCDSetLine(2);
+	lcd_set_line(2);
 
-		for(i=0; i<16; i++){
-			if(line2[i])
-				XromLCDPrintChar(line2[i]);
-			else break;
-		}
-	return;
+	for(i=0; i<16; i++){
+		if(line2[i])
+			lcd_print_char(line2[i]);
+		else break;
+	}
 }
 
 
-////////////////////////////////////////////////////////////////
-// LogNum:  Converts number to character                    //
-////////////////////////////////////////////////////////////////
-void XromLCDPrintNum(unsigned int x, unsigned int base)
+void lcd_print_num(unsigned int x, unsigned int base)
 {
   static char hex[]="0123456789ABCDEF";
   char digit[10];
@@ -229,54 +215,25 @@ void XromLCDPrintNum(unsigned int x, unsigned int base)
   while (i > 0)
   {
   	i--;
-    XromLCDPrintChar(digit[i]);
+    lcd_print_char(digit[i]);
   }
 }
 
-///////////////////////////////////////////////////////////////
-// tft_WriteInt:  handles the negative case, calls LogNum   //
-//                w/ unsigned value                         //
-//////////////////////////////////////////////////////////////
-void XromLCDPrintInt(unsigned int x)
+
+void lcd_print_int(unsigned int x)
 {
   unsigned int val;
 
   if (x < 0)
   {
-    XromLCDPrintChar('-');
+    lcd_print_char('-');
     val = ((unsigned int) ~x ) + 1;
   }
   else
     val = (unsigned int) x;
 
-  XromLCDPrintNum(val, 10);
+  lcd_print_num(val, 10);
 }
 
 
 
-
-// //////////////////// MAIN ////////////////////////////////////////
-
-
-void lcd_test()
-{
-	xil_printf("\r\nLCD Test\r\n");
-	xil_printf("========\r\n");
-
-
-	XromLCDInit();
-	XromLCDOn();
-
-
-
-    XromLCDClear();
-    XromLCDPrintString("Welcome to th");
-	 XromLCDPrintChar('e');
-	XromLCDSetLine(2);
-
-	XromLCDPrintChar('#');
-	XromLCDPrintInt(1);
-	XromLCDPrintString(" Prof Workshop ");
-	xil_printf("\r\nLCD Test Over\r\n");
-
-}
