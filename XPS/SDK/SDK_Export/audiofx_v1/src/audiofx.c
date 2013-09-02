@@ -36,9 +36,7 @@ static XGpio m_gpioPBs5;
 
 static volatile int mv_one_sec_flag = 0;
 
-static uint m_pregainval;
-static uint m_distval;
-
+static short mv_init_sound_watchdog = -1;
 
 /*** Function definitions ***/
 
@@ -51,10 +49,17 @@ void timer_int_handler(void* _unused) {
 
 	/* If the interrupt occurred, then increment a counter and set one_second_flag */
 	if (tcsr0 & XTC_CSR_INT_OCCURED_MASK) {
-		mv_one_sec_flag = 1;
-
 		/* Clear the timer interrupt */
 		XTmrCtr_SetControlStatusReg(XPAR_XPS_TIMER_0_BASEADDR, 0, tcsr0);
+
+		mv_one_sec_flag = 1;
+
+		if (mv_init_sound_watchdog > -1) {
+			if (++mv_init_sound_watchdog == 1) {
+				lcd_clear();
+				lcd_print_2strings("AC97 WATCHDOG", LCD_BLANKLINE);
+			}
+		}
 	}
 }
 
@@ -105,6 +110,9 @@ void init_interrupts(void) {
 	microblaze_enable_interrupts();
 }
 
+#define MIN_OUTPUT_VOLUME	0
+#define MAX_OUTPUT_VOLUME	32
+
 // vol:
 // 0 = mute
 // 32 = max
@@ -112,7 +120,7 @@ void set_output_volume(int vol) {
 	if (vol == 0) {
 		WriteAC97Reg(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_STEREO_VOLUME_REG, XAC97_VOL_MUTE);
 	}
-	else if (vol <= 32) {
+	else if (vol <= MAX_OUTPUT_VOLUME) {
 		u8 val = 32 - vol;
 		u16 regval = (val << 8) | val;
 		xil_printf("Setting master volume reg (02h) to 0x%04X\r\n", regval);
@@ -121,11 +129,14 @@ void set_output_volume(int vol) {
 }
 
 
+
 void do_ac97_init(void) {
 	FUNC_ENTER();
 
 	print("Calling init_sound\r\n");
+	mv_init_sound_watchdog = 0;
 	init_sound(48000);
+	mv_init_sound_watchdog = -1;
 
 	// Select Line In for Recording
 	XAC97_RecordSelect(XPAR_OPB_AC97_CONTROLLER_0_BASEADDR, XAC97_RECORD_LINE_IN);
@@ -191,6 +202,96 @@ void do_gpio_init(void) {
 }
 
 
+
+/******************************************************************************/
+// Menu
+
+typedef struct {
+	const char* name;
+	int value;
+	int minval;
+	int maxval;
+	void (*updatefunc)(int val);
+} param_t;
+
+#define INIT_OUTPUT_VOL		24
+#define INIT_PRE_GAIN		1*8
+#define INIT_DISTORTION		MIN_DISTORTION
+
+static param_t m_parameter_table[] =
+{
+	{"   MASTER VOL. >", INIT_OUTPUT_VOL, MIN_OUTPUT_VOLUME, MAX_OUTPUT_VOLUME, set_output_volume},
+	{"<   PRE-GAIN   >", INIT_PRE_GAIN, MIN_PRE_GAIN, MAX_PRE_GAIN, set_pre_gain},
+	{"<  DISTORTION   ", INIT_DISTORTION, MIN_DISTORTION, MAX_DISTORTION, set_distortion},
+};
+
+#define MIN_PARAM_IDX	0
+#define MAX_PARAM_IDX	(int)((sizeof(m_parameter_table)/sizeof(m_parameter_table[0]))-1)
+#define MENU_HOME		-1
+
+static int m_menu_idx = MENU_HOME;
+
+void show_cur_menu(void) {
+	lcd_clear();
+
+	if (m_menu_idx == MENU_HOME) {
+		lcd_print_2strings("--  Audio FX  --", LCD_BLANKLINE);
+	}
+	else {
+		param_t* cur = &m_parameter_table[m_menu_idx];
+
+		lcd_set_line(1);
+		lcd_print_string(cur->name);
+		lcd_set_line(2);
+		lcd_move_cursor_right();
+		lcd_move_cursor_right();
+		lcd_move_cursor_right();
+		lcd_print_int(cur->value);
+	}
+}
+
+void menu_right_pressed(void) {
+	if (m_menu_idx >= MAX_PARAM_IDX) return;
+
+	m_menu_idx++;
+	show_cur_menu();
+}
+
+void menu_left_pressed(void) {
+	if (m_menu_idx <= MIN_PARAM_IDX) return;
+
+	m_menu_idx--;
+	show_cur_menu();
+}
+
+void menu_up_pressed(void) {
+	param_t* cur = &m_parameter_table[m_menu_idx];
+
+	if (m_menu_idx == MENU_HOME) return;
+
+	if (cur->value < cur->maxval) {
+		cur->value++;
+		cur->updatefunc(cur->value);
+	}
+	show_cur_menu();
+}
+
+void menu_down_pressed(void) {
+	param_t* cur = &m_parameter_table[m_menu_idx];
+
+	if (m_menu_idx == MENU_HOME) return;
+
+	if (cur->value > cur->minval) {
+		cur->value--;
+		cur->updatefunc(cur->value);
+	}
+	show_cur_menu();
+}
+
+/******************************************************************************/
+
+
+
 inline u8 read_PB5(void) {
 	return XGpio_DiscreteRead(&m_gpioPBs5, 1) & 0xFF;
 }
@@ -212,30 +313,18 @@ void handle_pushbuttons(void) {
 
 	// Up/down = volume
 	if (new_pb & PB5_N) {		// Up pressed?
-		if (m_pregainval < 40) {
-			m_pregainval++;
-			set_pre_gain(m_pregainval);
-		}
+		menu_up_pressed();
 	}
 	else if (new_pb & PB5_S) {	// Down pressed?
-		if (m_pregainval > 0) {
-			m_pregainval--;
-			set_pre_gain(m_pregainval);
-		}
+		menu_down_pressed();
 	}
 
 	// Left/right = distortion
 	if (new_pb & PB5_E) {		// Right pressed?
-		if (m_distval < MAX_DISTORTION) {
-			m_distval++;
-			set_distortion(m_distval);
-		}
+		menu_right_pressed();
 	}
 	else if (new_pb & PB5_W) {	// Left pressed?
-		if (m_distval > MIN_DISTORTION) {
-			m_distval--;
-			set_distortion(m_distval);
-		}
+		menu_left_pressed();
 	}
 }
 
@@ -273,6 +362,10 @@ void probe_audiofx_stats(void) {
 }
 
 
+
+
+/******************************************************************************/
+
 int main(void)
 {
 	print("\r\n\r\nMicroblaze started. Built on " __DATE__ " at " __TIME__ "\r\n");
@@ -281,8 +374,8 @@ int main(void)
 	lcd_on();
 
 	lcd_clear();
-	lcd_print_string("--  Audio FX  --");
-	lcd_set_line(2);
+	lcd_print_string("Init");
+
 
 	///////////////////
 	// Initialization
@@ -296,12 +389,12 @@ int main(void)
 
 
 	//////////////////////
-	// Set initial DSP values
-	m_pregainval = 1*8;
-	set_pre_gain(m_pregainval);
+	// Set parameter DSP values
+	set_output_volume(INIT_OUTPUT_VOL);
+	set_pre_gain(INIT_PRE_GAIN);
+	set_distortion(INIT_DISTORTION);
 
-	m_distval = MIN_DISTORTION;
-	set_distortion(m_distval);
+	show_cur_menu();
 
 
 	////////////////////////
