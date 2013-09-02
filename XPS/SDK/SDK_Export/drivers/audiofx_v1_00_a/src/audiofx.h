@@ -19,8 +19,8 @@
 void set_pre_gain(unsigned int gain);
 
 // Distortion
-int MIN_DISTORTION(void);
-int MAX_DISTORTION(void);
+#define MIN_DISTORTION  0
+#define MAX_DISTORTION  14
 void set_distortion(int dist);
 
 #endif /* AUDIOFX_H */

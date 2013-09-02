@@ -33,6 +33,8 @@ typedef struct {
 	int gain;
 } distval_t;
 
+// NOTE: If any values are added/removed from this table,
+//       you must update MAX_DISTORTION in audiofx.h !
 static distval_t m_dist_table[] = {
 	{ 0x7FFF,	0x00010000 },
 	{ 8000,	0x00018000 },
@@ -69,15 +71,6 @@ void set_distortion(int dist) {
 	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x24, thresh);	// Distortion threshold
 	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x28, gain);	// Distortion gain (fixed 32-16)
 }
-
-int MIN_DISTORTION(void) {
-    return MIN_DIST_VAL;
-}
-
-int MAX_DISTORTION(void) {
-    return MAX_DIST_VAL;
-}
-
 
 
 

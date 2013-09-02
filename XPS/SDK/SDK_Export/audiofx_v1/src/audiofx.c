@@ -226,13 +226,13 @@ void handle_pushbuttons(void) {
 
 	// Left/right = distortion
 	if (new_pb & PB5_E) {		// Right pressed?
-		if (m_distval < MAX_DISTORTION()) {
+		if (m_distval < MAX_DISTORTION) {
 			m_distval++;
 			set_distortion(m_distval);
 		}
 	}
 	else if (new_pb & PB5_W) {	// Left pressed?
-		if (m_distval > MIN_DISTORTION()) {
+		if (m_distval > MIN_DISTORTION) {
 			m_distval--;
 			set_distortion(m_distval);
 		}
@@ -280,9 +280,9 @@ int main(void)
 	lcd_init();
 	lcd_on();
 
+	lcd_clear();
 	lcd_print_string("--  Audio FX  --");
 	lcd_set_line(2);
-	lcd_print_string(__TIME__);
 
 	///////////////////
 	// Initialization
@@ -312,7 +312,7 @@ int main(void)
     	if (mv_one_sec_flag) {
     		mv_one_sec_flag = 0;
 
-    		probe_audiofx_stats();
+    		//probe_audiofx_stats();
     	}
 
     	handle_dip_switches();
