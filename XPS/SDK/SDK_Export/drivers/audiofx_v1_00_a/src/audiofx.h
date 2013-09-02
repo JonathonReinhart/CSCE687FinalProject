@@ -16,7 +16,9 @@
 /*******************************************************************************/
 
 // Pre-gain
-void set_pre_gain(unsigned int gain);
+#define MIN_PRE_GAIN    0
+#define MAX_PRE_GAIN    80      // 80/8 = 10
+void set_pre_gain(int gain);
 
 // Distortion
 #define MIN_DISTORTION  0

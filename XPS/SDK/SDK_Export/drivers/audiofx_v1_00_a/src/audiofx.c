@@ -13,16 +13,19 @@
 //  8       1.0  	(0 dB)
 //  12		1.5  	(3.5 dB)
 //  16		2.0		(6 dB)
-void set_pre_gain(unsigned int gain) {
+void set_pre_gain(int gain) {
 	u32 regval;
-	// The 32-bit gain register is fixed-point, with 16 integer, 16 fractional bits.
-	//XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x20, 0x00010000);	// 1.0
+	
+    if (gain < 0) return;
+	if (gain > MAX_PRE_GAIN) return;
 
+    // The input value is in 1/8s.
+    // The 32-bit gain register is fixed-point, with 16 integer, 16 fractional bits.
 	regval = gain << (16-3);
 
 	xil_printf("Gain = %d   -> PREGAIN (20h) = 0x%08X\r\n", gain, regval);
 
-	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + 0x20, regval);
+	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_REG_20h_OFFSET, regval);
 }
 
 /**************************************************************************************************/
