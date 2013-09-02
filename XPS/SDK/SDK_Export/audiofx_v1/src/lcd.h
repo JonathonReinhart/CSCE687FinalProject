@@ -1,6 +1,8 @@
 #ifndef LCD_H_
 #define LCD_H_
 
+#define LCD_BLANKLINE	"                "
+
 void lcd_init(void);
 void lcd_on(void);
 void lcd_off(void);
