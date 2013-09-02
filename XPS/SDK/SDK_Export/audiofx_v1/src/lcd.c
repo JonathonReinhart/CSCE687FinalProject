@@ -109,7 +109,8 @@ void lcd_move_cursor_right(){
 }
 
 void lcd_on(void) {
-	XromWriteInst(0x00000000, 0x0000000E);
+	//XromWriteInst(0x00000000, 0x0000000E);
+	XromWriteInst(0x00000000, 0x0000000C);
 }
 
 void lcd_off(void) {
@@ -129,11 +130,18 @@ void lcd_init(void) {
 	//LCD INIT
 	lcd_udelay(15000);	//After VCC>4.5V Wait 15ms to Init Char LCD
 	XromInitInst();
+
+
+	// Why keep calling this? Maybe it's just my delay in FPGA programming, but this seems
+	// unnecessary. Someone didn't know what they were doing.
+	/*
 	lcd_udelay(4100); //Wait 4.1ms
 	XromInitInst();
+
 	lcd_udelay(100); //Wait 100us
 	XromInitInst();
 	XromInitInst();
+	*/
 
 	//Function Set
 	XromWriteInst(0x00000002, 0x00000008);
@@ -145,7 +153,8 @@ void lcd_init(void) {
 	XromWriteInst(0x00000000, 0x00000008);
 
 	//Display On
-	XromWriteInst(0x00000000, 0x0000000F);
+	//XromWriteInst(0x00000000, 0x0000000F);
+	XromWriteInst(0x00000000, 0x0000000C);
 
 	//Display Clear
 	XromWriteInst(0x00000000, 0x00000001);
