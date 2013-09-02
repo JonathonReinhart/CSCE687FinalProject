@@ -9,6 +9,7 @@
 #define INST_DELAY 500 //usec delay timer between instructions
 #define DATA_DELAY 250 //usec delay timer between data
 
+#define LCD_NUM_COLS	16
 
 
 //==============================================================================
@@ -127,27 +128,27 @@ void lcd_init(void) {
 
 	//LCD INIT
 	lcd_udelay(15000);	//After VCC>4.5V Wait 15ms to Init Char LCD
-		XromInitInst();
+	XromInitInst();
 	lcd_udelay(4100); //Wait 4.1ms
-		XromInitInst();
+	XromInitInst();
 	lcd_udelay(100); //Wait 100us
-		XromInitInst();
-		XromInitInst();
+	XromInitInst();
+	XromInitInst();
 
 	//Function Set
-		XromWriteInst(0x00000002, 0x00000008);
+	XromWriteInst(0x00000002, 0x00000008);
 
 	//Entry Mode Set
-		XromWriteInst(0x00000000, 0x00000006);
+	XromWriteInst(0x00000000, 0x00000006);
 
 	//Display Off
-		XromWriteInst(0x00000000, 0x00000008);
+	XromWriteInst(0x00000000, 0x00000008);
 
 	//Display On
-		XromWriteInst(0x00000000, 0x0000000F);
+	XromWriteInst(0x00000000, 0x0000000F);
 
 	//Display Clear
-		XromWriteInst(0x00000000, 0x00000001);
+	XromWriteInst(0x00000000, 0x00000001);
 }
 
 
@@ -169,32 +170,21 @@ void lcd_print_char(char c){
 	XromWriteData(((c >> 4) & 0x0000000F), (c & 0x0000000F));
 }
 
-void lcd_print_string(const char * line) {
-	int i=0;
-	while(line[i]){
-		lcd_print_char(line[i]);
-		i++;
+
+void lcd_print_string(const char* str) {
+	int i = 0;
+
+	for (i=0; i<LCD_NUM_COLS && str[i]; ++i) {
+		lcd_print_char(str[i]);
 	}
 }
 
 void lcd_print_2strings(const char* line1, const char* line2) {
-	int i=0;
-
 	lcd_set_line(1);
-
-	for(i=0; i<16; i++){
-		if(line1[i])
-			lcd_print_char(line1[i]);
-		else break;
-	}
+	lcd_print_string(line1);
 
 	lcd_set_line(2);
-
-	for(i=0; i<16; i++){
-		if(line2[i])
-			lcd_print_char(line2[i]);
-		else break;
-	}
+	lcd_print_string(line2);
 }
 
 
