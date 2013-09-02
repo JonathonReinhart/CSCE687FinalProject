@@ -300,7 +300,7 @@ int main(void)
 	m_pregainval = 1*8;
 	set_pre_gain(m_pregainval);
 
-	m_distval = MIN_DISTORTION();
+	m_distval = MIN_DISTORTION;
 	set_distortion(m_distval);
 
 
