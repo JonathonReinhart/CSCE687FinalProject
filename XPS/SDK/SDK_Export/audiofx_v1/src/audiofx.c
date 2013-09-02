@@ -242,11 +242,25 @@ void show_cur_menu(void) {
 
 		lcd_set_line(1);
 		lcd_print_string(cur->name);
+
 		lcd_set_line(2);
 		lcd_move_cursor_right();
 		lcd_move_cursor_right();
 		lcd_move_cursor_right();
 		lcd_print_int(cur->value);
+
+		if (cur->value < 100)
+			lcd_move_cursor_right();
+		if (cur->value < 10)
+			lcd_move_cursor_right();
+
+		lcd_move_cursor_right();
+		lcd_move_cursor_right();
+		lcd_print_char('(');
+		lcd_print_int(cur->minval);
+		lcd_print_char('-');
+		lcd_print_int(cur->maxval);
+		lcd_print_char(')');
 	}
 }
 
