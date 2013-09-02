@@ -10,7 +10,7 @@
 //#define SHOW_AC97_REGS
 
 // Periodically probe AudioFX core stats
-#define PROBE_AUDIOFX_STATS
+//#define PROBE_AUDIOFX_STATS
 
 
 #define INIT_OUTPUT_VOL		24
