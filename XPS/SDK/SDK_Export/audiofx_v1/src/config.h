@@ -20,6 +20,10 @@
 
 #define TIMER_TICK_HZ		2
 
+#define DSP0_PREGAIN		(1<<0)
+#define DSP1_DISTORTION		(1<<1)
+#define DSP2_UNUSED			(1<<2)
+#define DSP3_FLANGER		(1<<3)
 
 // Move this stuff to another header file
 

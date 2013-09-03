@@ -3,6 +3,7 @@
 
 
 typedef enum {
+	NONE,
 	SHOW,
 	UP_PRESSED,
 	DOWN_PRESSED,
