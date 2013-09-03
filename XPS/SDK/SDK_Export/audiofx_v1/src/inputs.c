@@ -52,7 +52,7 @@ void handle_pushbuttons(void) {
 	s_last_pb = new_pb;
 	//xil_printf("New Pushbuttons value: 0x%X\r\n", new_pb);
 
-	// Up/down = volume
+	// Up/down
 	if (new_pb & PB5_N) {		// Up pressed?
 		handle_menu(UP_PRESSED);
 	}
@@ -60,19 +60,24 @@ void handle_pushbuttons(void) {
 		handle_menu(DOWN_PRESSED);
 	}
 
-	// Left/right = distortion
+	// Left/right
 	if (new_pb & PB5_E) {		// Right pressed?
 		handle_menu(RIGHT_PRESSED);
 	}
 	else if (new_pb & PB5_W) {	// Left pressed?
 		handle_menu(LEFT_PRESSED);
 	}
+
+	// Center
+	if (new_pb & PB5_C) {		// Center pressed?
+		handle_menu(CENTER_PRESSED);
+	}
+
 }
 
 void handle_dip_switches(void) {
 	static u8 s_last_dip = 0;
 	u8 new_dip;
-	u32 temp;
 
 	// Check if DSP select switches changed
 	new_dip = read_DIP8();
@@ -80,12 +85,6 @@ void handle_dip_switches(void) {
 
 	s_last_dip = new_dip;
 
-	//xil_printf("New DIP switch value: 0x%X\r\n", new_dip);
-	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET, new_dip);
-
-	temp = XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET);
-	xil_printf("Enabled DSPs: 0x%X\r\n", temp);
-
-	handle_menu(SHOW);
+	// Do nothing....
 }
 

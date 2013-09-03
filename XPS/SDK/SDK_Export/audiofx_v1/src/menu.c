@@ -6,8 +6,24 @@
 #include "menu.h"
 #include "config.h"
 
+#define DSP0_PREGAIN		(1<<0)
+#define DSP1_DISTORTION		(1<<1)
+#define DSP2_UNUSED			(1<<2)
+#define DSP3_FLANGER		(1<<3)
+
+
 int get_ena_dsps(void) {
 	return XIo_In32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET);
+}
+
+void enable_dsps(int dsp_mask) {
+	dsp_mask |= get_ena_dsps();
+	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET, dsp_mask);
+}
+
+void disable_dsps(int dsp_mask) {
+	dsp_mask = get_ena_dsps() & (~dsp_mask);
+	XIo_Out32(XPAR_AUDIOFX_0_BASEADDR + AUDIOFX_DSPENA_REG_OFFSET, dsp_mask);
 }
 
 
@@ -59,6 +75,9 @@ void default_param_action(MENU_ACTION action, int* value, int minval, int maxval
 	}
 }
 
+/*********************************************************************************************************/
+// Menus
+
 void master_vol_menu(MENU_ACTION action) {
 	static int s_master_vol = INIT_OUTPUT_VOL;
 
@@ -74,12 +93,23 @@ void master_vol_menu(MENU_ACTION action) {
 	}
 }
 
+void handle_enadis_action(MENU_ACTION action, int dsp_mask) {
+	if (action == CENTER_PRESSED) {
+		if (get_ena_dsps() & dsp_mask)
+			disable_dsps(dsp_mask);
+		else
+			enable_dsps(dsp_mask);
+	}
+}
+
 void pre_gain_menu(MENU_ACTION action) {
 	static int s_pre_gain = INIT_PRE_GAIN;
 
 	menu_show_title("<   PRE-GAIN   >");
 
-	if (get_ena_dsps() & (1<<0)) {	// DSP_0
+	handle_enadis_action(action, DSP0_PREGAIN);
+
+	if (get_ena_dsps() & DSP0_PREGAIN) {
 		default_param_action(action, &s_pre_gain, MIN_PRE_GAIN, MAX_PRE_GAIN, set_pre_gain);
 		show_param_val_range2(s_pre_gain, MIN_PRE_GAIN, MAX_PRE_GAIN);
 	}
@@ -94,7 +124,9 @@ void distortion_menu(MENU_ACTION action) {
 
 	menu_show_title("<  DISTORTION  >");
 
-	if (get_ena_dsps() & (1<<1)) {	// DSP_1
+	handle_enadis_action(action, DSP1_DISTORTION);
+
+	if (get_ena_dsps() & DSP1_DISTORTION) {
 		default_param_action(action, &s_distortion, MIN_DISTORTION, MAX_DISTORTION, set_distortion);
 		show_param_val_range2(s_distortion, MIN_DISTORTION, MAX_DISTORTION);
 	}
@@ -109,7 +141,9 @@ void flanger_rate_menu(MENU_ACTION action) {
 
 	menu_show_title("< FLANGER PER.  ");
 
-	if (get_ena_dsps() & (1<<3)) {	// DSP_3
+	handle_enadis_action(action, DSP3_FLANGER);
+
+	if (get_ena_dsps() & DSP3_FLANGER) {
 		default_param_action(action, &s_flange_rate, MIN_FLANGER_PERIOD, MAX_FLANGER_PERIOD, set_flanger_period);
 		show_param_val_range2(s_flange_rate, MIN_FLANGER_PERIOD, MAX_FLANGER_PERIOD);
 	}
