@@ -1,0 +1,22 @@
+AudioFX
+Realtime guitar effects implemented in VHDL using AC'97 codec
+2013.09.04
+
+Jonathon Reinhart  (Jonathon.Reinhart@gmail.com)
+ - System design/integration
+ - Software
+ - DSPs
+
+Scott Dalrymple    (Scott.Dalrymple@afit.edu)
+ - DSPs
+
+-----------------------------------------------------------------------------------------
+
+AC'97 core with FSL link 
+and Driver from
+
+  http://www.eecg.toronto.edu/~pc/courses/432/2004/projects/
+
+  Driver modifications by Jonathon Reinhart
+
+----------------------------------------------------------------------------------------
